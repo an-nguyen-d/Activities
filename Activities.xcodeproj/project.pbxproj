@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8EA9E19B2DF1C8B400BDE483 /* ACT.ActivitiesListFeatureiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 8EA9E19A2DF1C8B400BDE483 /* ACT.ActivitiesListFeatureiOS */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		8E2217F42DE8B4960006190D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		8E2217DD2DE8B4950006190D /* Activities.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Activities.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E2217F32DE8B4960006190D /* ActivitiesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ActivitiesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E2217FD2DE8B4960006190D /* ActivitiesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ActivitiesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8EB5E80B2DF08A24004559F7 /* ActivitiesApp */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ActivitiesApp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -65,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8EA9E19B2DF1C8B400BDE483 /* ACT.ActivitiesListFeatureiOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,9 +94,11 @@
 		8E2217D42DE8B4950006190D = {
 			isa = PBXGroup;
 			children = (
+				8EB5E80C2DF08A24004559F7 /* Packages */,
 				8E2217DF2DE8B4950006190D /* Activities */,
 				8E2217F62DE8B4960006190D /* ActivitiesTests */,
 				8E2218002DE8B4960006190D /* ActivitiesUITests */,
+				8E49E26A2DF05DA1003E2712 /* Frameworks */,
 				8E2217DE2DE8B4950006190D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,6 +111,21 @@
 				8E2217FD2DE8B4960006190D /* ActivitiesUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		8E49E26A2DF05DA1003E2712 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		8EB5E80C2DF08A24004559F7 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				8EB5E80B2DF08A24004559F7 /* ActivitiesApp */,
+			);
+			path = Packages;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -125,6 +148,7 @@
 			);
 			name = Activities;
 			packageProductDependencies = (
+				8EA9E19A2DF1C8B400BDE483 /* ACT.ActivitiesListFeatureiOS */,
 			);
 			productName = Activities;
 			productReference = 8E2217DD2DE8B4950006190D /* Activities.app */;
@@ -208,6 +232,8 @@
 			);
 			mainGroup = 8E2217D42DE8B4950006190D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8E2217DE2DE8B4950006190D /* Products */;
 			projectDirPath = "";
@@ -287,6 +313,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Activities/Activities.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PAGG8XDJQQ;
@@ -304,6 +331,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.elixirapps.Activities;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -315,6 +345,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Activities/Activities.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PAGG8XDJQQ;
@@ -332,6 +363,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.elixirapps.Activities;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = YES;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -569,6 +603,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8EA9E19A2DF1C8B400BDE483 /* ACT.ActivitiesListFeatureiOS */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ACT.ActivitiesListFeatureiOS;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8E2217D52DE8B4950006190D /* Project object */;
 }
