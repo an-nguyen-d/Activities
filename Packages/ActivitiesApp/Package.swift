@@ -16,7 +16,7 @@ let package = Package(
     // MARK: - Remote
 //    PackageDependency.SwiftLint.packageDependency,
     PackageDependency.ComposableArchitecture.packageDependency,
-//    PackageDependency.SwiftTagged.packageDependency,
+    PackageDependency.SwiftTagged.packageDependency,
 //    PackageDependency.XCTestDynamicOverlay.packageDependency,
 //    PackageDependency.Overture.packageDependency,
 //    PackageDependency.Prelude.packageDependency,
@@ -26,7 +26,7 @@ let package = Package(
 //    PackageDependency.Quick.packageDependency,
 //    PackageDependency.Nimble.packageDependency,
 //    PackageDependency.SwiftCustomDump.packageDependency,
-//    PackageDependency.IdentifiedCollections.packageDependency,
+    PackageDependency.IdentifiedCollections.packageDependency,
 //    PackageDependency.SwiftWhisper.packageDependency,
 //    PackageDependency.AudioKit.packageDependency,
 //    PackageDependency.RealmSwift.packageDependency,
@@ -39,6 +39,7 @@ let package = Package(
 //    PackageDependency.Mixpanel.packageDependency,
 //    PackageDependency.RevenueCat.packageDependency,
 //    PackageDependency.OneSignal.packageDependency,
+    PackageDependency.SwiftCustomDump.packageDependency
   ],
   targets: PackageTarget.allTargets
 )
@@ -49,7 +50,7 @@ let package = Package(
 enum PackageTarget: String, CaseIterable {
 
   private static let testCases: [Self] = [
-
+    .GoalEvaluationClientTests
   ]
 
   static var allProducts: [Product] {
@@ -69,6 +70,11 @@ enum PackageTarget: String, CaseIterable {
   case ActivitiesListFeatureOld
 
   case ActivitiesListFeatureUIKitOld
+
+  case GoalEvaluationClient
+  case GoalEvaluationClientTests
+
+  case SharedModels
 
   case SharedUI
 
@@ -127,6 +133,34 @@ enum PackageTarget: String, CaseIterable {
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .GoalEvaluationClient:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency
+        ]
+      )
+
+    case .GoalEvaluationClientTests:
+      return createPackageTestTarget(
+        dependencies: createTargetDependencies(
+          .GoalEvaluationClient
+        ) + [
+
+        ]
+      )
+
+    case .SharedModels:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.SwiftTagged.Product.tagged.targetDependency
         ]
       )
 
@@ -189,8 +223,8 @@ enum PackageTarget: String, CaseIterable {
   ) -> Target {
     var dependencies = dependencies
     dependencies += [
-      PackageDependency.Quick.Product.quick.targetDependency,
-      PackageDependency.Nimble.Product.nimble.targetDependency,
+//      PackageDependency.Quick.Product.quick.targetDependency,
+//      PackageDependency.Nimble.Product.nimble.targetDependency,
       PackageDependency.SwiftCustomDump.Product.customDump.targetDependency
     ]
 
@@ -319,7 +353,7 @@ extension PackageDependency {
     static var packageDependency: Package.Dependency {
       .package(
         url: "https://github.com/pointfreeco/swift-tagged",
-        from: "0.10.0"
+        exact: "0.10.0"
       )
     }
 
@@ -527,7 +561,7 @@ extension PackageDependency {
     static var packageDependency: Package.Dependency {
       .package(
         url: "https://github.com/pointfreeco/swift-custom-dump",
-        from: "1.1.2"
+        exact: "1.3.3"
       )
     }
 
@@ -550,7 +584,7 @@ extension PackageDependency {
     static var packageDependency: Package.Dependency {
       .package(
         url: "https://github.com/pointfreeco/swift-identified-collections",
-        from: "1.0.0"
+        exact: "1.1.1"
       )
     }
 
