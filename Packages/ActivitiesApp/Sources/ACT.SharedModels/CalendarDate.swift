@@ -1,5 +1,20 @@
 import Foundation
 
+public enum CalendarDateRange: Sendable {
+  case singleDay(CalendarDate)
+  case multipleDays(start: CalendarDate, end: CalendarDate)
+  
+  public init(start: CalendarDate, end: CalendarDate) {
+    precondition(start <= end, "Invalid date range: start (\(start.value)) must not be after end (\(end.value))")
+    
+    if start == end {
+      self = .singleDay(start)
+    } else {
+      self = .multipleDays(start: start, end: end)
+    }
+  }
+}
+
 public struct CalendarDate: Equatable, Comparable, Sendable {
   public let value: String
 
@@ -32,6 +47,14 @@ public struct CalendarDate: Equatable, Comparable, Sendable {
     formatter.calendar = Calendar(identifier: .gregorian)
     formatter.timeZone = timeZone
     return CalendarDate(formatter.string(from: Date()))
+  }
+
+  public init(from date: Date, timeZone: TimeZone = .autoupdatingCurrent) {
+    let formatter = DateFormatter()
+    formatter.dateFormat = Self.format
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.timeZone = timeZone
+    self.init(formatter.string(from: date))
   }
 
   public func addingDays(_ days: Int) -> CalendarDate {
@@ -94,5 +117,45 @@ public struct CalendarDate: Equatable, Comparable, Sendable {
 
     // If it's 0, we're on that day, so go to next week's occurrence
     return daysToAdd == 0 ? addingWeeks(1) : addingDays(daysToAdd)
+  }
+
+  public func nextDay() -> CalendarDate {
+      addingDays(1)
+  }
+
+}
+
+extension CalendarDate {
+  /// Returns the current date if it matches the target day, otherwise returns the most recent occurrence.
+  /// - Parameter dayOfWeek: The target day of week to find
+  /// - Returns: Self if already on target day, otherwise the most recent occurrence in the past
+  public func getCurrentOrPrevious(dayOfWeek targetDay: DayOfWeek) -> CalendarDate {
+    let currentDay = self.dayOfWeek()
+
+    if currentDay == targetDay {
+      return self
+    }
+
+    // Calculate days to go back to reach the target day
+    var daysBack = currentDay.rawValue - targetDay.rawValue
+    if daysBack < 0 {
+      daysBack += DayOfWeek.daysPerWeek
+    }
+
+    return addingDays(-daysBack)
+  }
+}
+extension CalendarDate {
+  public func date(timeZone: TimeZone = .autoupdatingCurrent) -> Date {
+    let formatter = DateFormatter()
+    formatter.dateFormat = Self.format
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.timeZone = timeZone
+
+    guard let date = formatter.date(from: value) else {
+      fatalError("Invalid date format: \(value)")
+    }
+
+    return date
   }
 }

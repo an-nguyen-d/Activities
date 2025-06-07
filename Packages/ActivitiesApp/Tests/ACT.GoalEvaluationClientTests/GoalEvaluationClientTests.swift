@@ -11,13 +11,14 @@ extension CalendarDate {
 
 // MARK: - Test Helpers
 
-extension ActivitySession {
+extension ActivitySessionModel {
   static func testSession(
     value: Double,
     completeCalendarDate: CalendarDate = .today()
   ) -> Self {
     let now = Date()
     return Self(
+      id: .init(1),
       value: value,
       createDate: now,  // Not relevant for tests
       completeDate: now,  // Not relevant for tests
@@ -26,29 +27,32 @@ extension ActivitySession {
   }
 }
 
-extension EveryXDaysActivityGoal {
+extension EveryXDaysActivityGoalModel {
   static func testGoal(
-    effectiveCalendarDate: CalendarDate = CalendarDate.today(),
+    effectiveCalendarDate: CalendarDate = CalendarDate.today().addingDays(-365), // 1 year ago
     daysInterval: Int = 1,
     goalValue: Double,
     goalSuccessCriteria: GoalSuccessCriteria = .atLeast
   ) -> Self {
     return Self(
+      id: .init(1),
       createDate: Date(),
       effectiveCalendarDate: effectiveCalendarDate,
       daysInterval: daysInterval,
+      goalID: .init(1),
       goalValue: goalValue,
       goalSuccessCriteria: goalSuccessCriteria
     )
   }
 }
 
-extension DaysOfWeekActivityGoal {
+extension DaysOfWeekActivityGoalModel {
   static func pausedGoal(
-    effectiveCalendarDate: CalendarDate = CalendarDate.today(),
+    effectiveCalendarDate: CalendarDate = CalendarDate.today().addingDays(-365), // 1 year ago
     weeksInterval: Int = 1
   ) -> Self {
     return Self(
+      id: .init(1),
       createDate: Date(),
       effectiveCalendarDate: effectiveCalendarDate,
       weeksInterval: weeksInterval,
@@ -64,11 +68,12 @@ extension DaysOfWeekActivityGoal {
   
   static func singleDayGoal(
     day: DayOfWeek,
-    config: ActivityGoalTarget,
-    effectiveCalendarDate: CalendarDate = .knownSunday,
+    config: ActivityGoalTargetModel,
+    effectiveCalendarDate: CalendarDate = CalendarDate.today().addingDays(-365), // 1 year ago
     weeksInterval: Int = 1
   ) -> Self {
     return Self(
+      id: .init(1),
       createDate: Date(),
       effectiveCalendarDate: effectiveCalendarDate,
       weeksInterval: weeksInterval,
@@ -83,17 +88,18 @@ extension DaysOfWeekActivityGoal {
   }
   
   static func customGoal(
-    effectiveCalendarDate: CalendarDate = .knownSunday,
+    effectiveCalendarDate: CalendarDate = CalendarDate.today().addingDays(-365), // 1 year ago
     weeksInterval: Int = 1,
-    mondayGoal: ActivityGoalTarget? = nil,
-    tuesdayGoal: ActivityGoalTarget? = nil,
-    wednesdayGoal: ActivityGoalTarget? = nil,
-    thursdayGoal: ActivityGoalTarget? = nil,
-    fridayGoal: ActivityGoalTarget? = nil,
-    saturdayGoal: ActivityGoalTarget? = nil,
-    sundayGoal: ActivityGoalTarget? = nil
+    mondayGoal: ActivityGoalTargetModel? = nil,
+    tuesdayGoal: ActivityGoalTargetModel? = nil,
+    wednesdayGoal: ActivityGoalTargetModel? = nil,
+    thursdayGoal: ActivityGoalTargetModel? = nil,
+    fridayGoal: ActivityGoalTargetModel? = nil,
+    saturdayGoal: ActivityGoalTargetModel? = nil,
+    sundayGoal: ActivityGoalTargetModel? = nil
   ) -> Self {
     return Self(
+      id: .init(1),
       createDate: Date(),
       effectiveCalendarDate: effectiveCalendarDate,
       weeksInterval: weeksInterval,
@@ -108,15 +114,17 @@ extension DaysOfWeekActivityGoal {
   }
 }
 
-extension WeeksPeriodActivityGoal {
+extension WeeksPeriodActivityGoalModel {
   static func testGoal(
-    effectiveCalendarDate: CalendarDate = .knownMonday,
+    effectiveCalendarDate: CalendarDate = CalendarDate.today().addingDays(-365).next(.monday), // 1 year ago
     goalValue: Double,
     goalSuccessCriteria: GoalSuccessCriteria = .atLeast
   ) -> Self {
     return Self(
+      id: .init(1),
       createDate: Date(),
       effectiveCalendarDate: effectiveCalendarDate,
+      goalID: .init(1),
       goalValue: goalValue,
       goalSuccessCriteria: goalSuccessCriteria
     )
@@ -127,15 +135,18 @@ extension WeeksPeriodActivityGoal {
 
 class GoalEvaluationClientTests: XCTestCase {
   
-  let client = GoalEvaluationClient.testValue()
+  let client = GoalEvaluationClient.liveValue()
   
   // MARK: - Paused Goal Tests (using DaysOfWeekActivityGoal with all nils)
   
   func test_givenDaysOfWeekActivityGoalWithAllNils_thenAlwaysReturnsSkip() {
     // Given - effectively a "paused" goal
-    let pausedGoal = DaysOfWeekActivityGoal.pausedGoal()
+    // Set effective date well before any test date (e.g., 30 days ago)
+    let effectiveDate = CalendarDate.today().addingDays(-30)
+    let pausedGoal = DaysOfWeekActivityGoalModel.pausedGoal(effectiveCalendarDate: effectiveDate)
+
     let startDate = CalendarDate.today()
-    
+
     // Test 8 days to ensure we cover all weekdays and wrap around
     for dayOffset in 0..<(DayOfWeek.daysPerWeek + 1) {
       let evaluationDate = startDate.addingDays(dayOffset)
@@ -179,11 +190,11 @@ class GoalEvaluationClientTests: XCTestCase {
     }
   }
   
-  // MARK: - EveryXDaysActivityGoal Basic Evaluation Tests
+  // MARK: - EveryXDaysActivityGoalModel Basic Evaluation Tests
   
-  func test_givenEveryXDaysActivityGoal_whenNoSessionsToday_thenIncomplete() {
+  func test_givenEveryXDaysActivityGoalModel_whenNoSessionsToday_thenIncomplete() {
     // Given
-    let dailyGoal = EveryXDaysActivityGoal.testGoal(goalValue: 1)
+    let dailyGoal = EveryXDaysActivityGoalModel.testGoal(goalValue: 1)
     let today = CalendarDate.today()
     
     // When
@@ -198,9 +209,9 @@ class GoalEvaluationClientTests: XCTestCase {
     XCTAssertEqual(client.evaluateStatus(request), .incomplete)
   }
   
-  func test_givenEveryXDaysActivityGoal_whenNoSessionsInPast_thenFailure() {
+  func test_givenEveryXDaysActivityGoalModel_whenNoSessionsInPast_thenFailure() {
     // Given
-    let dailyGoal = EveryXDaysActivityGoal.testGoal(goalValue: 1)
+    let dailyGoal = EveryXDaysActivityGoalModel.testGoal(goalValue: 1)
     let today = CalendarDate.today()
     let yesterday = today.addingDays(-1)
     
@@ -216,10 +227,10 @@ class GoalEvaluationClientTests: XCTestCase {
     XCTAssertEqual(client.evaluateStatus(request), .failure)
   }
   
-  func test_givenEveryXDaysActivityGoal_whenAddingSessions_thenTransitionsToSuccess() {
+  func test_givenEveryXDaysActivityGoalModel_whenAddingSessions_thenTransitionsToSuccess() {
     // Given
     let goalValue: Double = 10
-    let goal = EveryXDaysActivityGoal.testGoal(goalValue: goalValue)
+    let goal = EveryXDaysActivityGoalModel.testGoal(goalValue: goalValue)
     let today = CalendarDate.today()
     
     // Assert incomplete with no sessions
@@ -250,19 +261,21 @@ class GoalEvaluationClientTests: XCTestCase {
     XCTAssertEqual(client.evaluateStatus(request3), .success)
   }
   
-  // MARK: - EveryXDaysActivityGoal Interval Tests
+  // MARK: - EveryXDaysActivityGoalModel Interval Tests
   
-  func test_givenEveryXDaysActivityGoal_whenInterval2_thenCorrectStatesAcrossDays() {
+  func test_givenEveryXDaysActivityGoalModel_whenInterval2_thenCorrectStatesAcrossDays() {
     // Given - goal every 2 days
     let day1 = CalendarDate.today()
     let day2 = day1.addingDays(1)
     let day3 = day1.addingDays(2)
     let day4 = day1.addingDays(3)
     
-    let goal = EveryXDaysActivityGoal(
+    let goal = EveryXDaysActivityGoalModel(
+      id: .init(1),
       createDate: Date(),
       effectiveCalendarDate: day1,
       daysInterval: 2,
+      goalID: .init(1),
       goalValue: 10,
       goalSuccessCriteria: .atLeast
     )
@@ -315,10 +328,10 @@ class GoalEvaluationClientTests: XCTestCase {
   
   // MARK: - Goal Success Criteria Tests
   
-  func test_givenEveryXDaysActivityGoal_whenExactlyCriteria_thenOnlyExactValueSucceeds() {
+  func test_givenEveryXDaysActivityGoalModel_whenExactlyCriteria_thenOnlyExactValueSucceeds() {
     // Given - goal requiring exactly 30 minutes
     let goalValue: Double = 30
-    let goal = EveryXDaysActivityGoal.testGoal(
+    let goal = EveryXDaysActivityGoalModel.testGoal(
       goalValue: goalValue,
       goalSuccessCriteria: .exactly
     )
@@ -361,10 +374,10 @@ class GoalEvaluationClientTests: XCTestCase {
     XCTAssertEqual(client.evaluateStatus(request4), .failure)
   }
   
-  func test_givenEveryXDaysActivityGoal_whenLessThanCriteriaToday_thenIncompleteUntilOver() {
+  func test_givenEveryXDaysActivityGoalModel_whenLessThanCriteriaToday_thenIncompleteUntilOver() {
     // Given - goal to watch less than 20 minutes TV
     let goalValue: Double = 20
-    let goal = EveryXDaysActivityGoal.testGoal(
+    let goal = EveryXDaysActivityGoalModel.testGoal(
       goalValue: goalValue,
       goalSuccessCriteria: .lessThan
     )
@@ -407,16 +420,19 @@ class GoalEvaluationClientTests: XCTestCase {
     XCTAssertEqual(client.evaluateStatus(request4), .failure)
   }
   
-  func test_givenEveryXDaysActivityGoal_whenLessThanCriteriaPastDate_thenSuccessOrFailure() {
+  func test_givenEveryXDaysActivityGoalModel_whenLessThanCriteriaPastDate_thenSuccessOrFailure() {
     // Given - goal to watch less than 20 minutes TV
     let goalValue: Double = 20
-    let goal = EveryXDaysActivityGoal.testGoal(
+    let yesterday = CalendarDate.today().addingDays(-1)
+    let today = CalendarDate.today()
+
+    // Create goal with effective date before yesterday
+    let goal = EveryXDaysActivityGoalModel.testGoal(
+      effectiveCalendarDate: yesterday.addingDays(-7), // A week before yesterday
       goalValue: goalValue,
       goalSuccessCriteria: .lessThan
     )
-    let yesterday = CalendarDate.today().addingDays(-1)
-    let today = CalendarDate.today()
-    
+
     // 0 minutes yesterday - success! (proved restraint)
     let request1 = GoalEvaluationClient.EvaluateStatus.Request(
       goal: goal,
@@ -457,11 +473,12 @@ class GoalEvaluationClientTests: XCTestCase {
   // MARK: - DaysOfWeekActivityGoal Tests
   
   func test_givenDaysOfWeekActivityGoal_whenOnlyOneDayConfigured_thenEvaluatesOnlyThatDay() {
-    let goalConfig = ActivityGoalTarget(goalValue: 10, goalSuccessCriteria: .atLeast)
-    
+    let goalConfig = ActivityGoalTargetModel(id: 1, goalValue: 10, goalSuccessCriteria: .atLeast)
+
     // Create all 7 single-day goals
     let singleDayGoals = (0..<DayOfWeek.daysPerWeek).map { targetDay in
-      DaysOfWeekActivityGoal(
+      DaysOfWeekActivityGoalModel(
+        id: .init(1),
         createDate: Date(),
         effectiveCalendarDate: .knownSunday,
         weeksInterval: 1,
@@ -530,7 +547,7 @@ class GoalEvaluationClientTests: XCTestCase {
     // Define all possible configurations we want to test
     struct TestCase {
       let name: String
-      let config: ActivityGoalTarget?
+      let config: ActivityGoalTargetModel?
       let totalValue: Double
       let expectedToday: GoalStatus
       let expectedYesterday: GoalStatus
@@ -549,21 +566,21 @@ class GoalEvaluationClientTests: XCTestCase {
       // atLeast tests
       TestCase(
         name: "atLeast 10 - under (5)",
-        config: ActivityGoalTarget(goalValue: 10, goalSuccessCriteria: .atLeast),
+        config: ActivityGoalTargetModel(id: 1, goalValue: 10, goalSuccessCriteria: .atLeast),
         totalValue: 5,
         expectedToday: .incomplete,
         expectedYesterday: .failure
       ),
       TestCase(
         name: "atLeast 10 - exact (10)",
-        config: ActivityGoalTarget(goalValue: 10, goalSuccessCriteria: .atLeast),
+        config: ActivityGoalTargetModel(id: 2, goalValue: 10, goalSuccessCriteria: .atLeast),
         totalValue: 10,
         expectedToday: .success,
         expectedYesterday: .success
       ),
       TestCase(
         name: "atLeast 10 - over (15)",
-        config: ActivityGoalTarget(goalValue: 10, goalSuccessCriteria: .atLeast),
+        config: ActivityGoalTargetModel(id: 3, goalValue: 10, goalSuccessCriteria: .atLeast),
         totalValue: 15,
         expectedToday: .success,
         expectedYesterday: .success
@@ -572,21 +589,21 @@ class GoalEvaluationClientTests: XCTestCase {
       // exactly tests
       TestCase(
         name: "exactly 10 - under (5)",
-        config: ActivityGoalTarget(goalValue: 10, goalSuccessCriteria: .exactly),
+        config: ActivityGoalTargetModel(id: 4, goalValue: 10, goalSuccessCriteria: .exactly),
         totalValue: 5,
         expectedToday: .incomplete,
         expectedYesterday: .failure
       ),
       TestCase(
         name: "exactly 10 - exact (10)",
-        config: ActivityGoalTarget(goalValue: 10, goalSuccessCriteria: .exactly),
+        config: ActivityGoalTargetModel(id: 5, goalValue: 10, goalSuccessCriteria: .exactly),
         totalValue: 10,
         expectedToday: .success,
         expectedYesterday: .success
       ),
       TestCase(
         name: "exactly 10 - over (15)",
-        config: ActivityGoalTarget(goalValue: 10, goalSuccessCriteria: .exactly),
+        config: ActivityGoalTargetModel(id: 6, goalValue: 10, goalSuccessCriteria: .exactly),
         totalValue: 15,
         expectedToday: .failure,
         expectedYesterday: .failure
@@ -595,21 +612,21 @@ class GoalEvaluationClientTests: XCTestCase {
       // lessThan tests
       TestCase(
         name: "lessThan 10 - under (5)",
-        config: ActivityGoalTarget(goalValue: 10, goalSuccessCriteria: .lessThan),
+        config: ActivityGoalTargetModel(id: 7, goalValue: 10, goalSuccessCriteria: .lessThan),
         totalValue: 5,
         expectedToday: .incomplete,
         expectedYesterday: .success
       ),
       TestCase(
         name: "lessThan 10 - exact (10)",
-        config: ActivityGoalTarget(goalValue: 10, goalSuccessCriteria: .lessThan),
+        config: ActivityGoalTargetModel(id: 8, goalValue: 10, goalSuccessCriteria: .lessThan),
         totalValue: 10,
         expectedToday: .failure,
         expectedYesterday: .failure
       ),
       TestCase(
         name: "lessThan 10 - over (15)",
-        config: ActivityGoalTarget(goalValue: 10, goalSuccessCriteria: .lessThan),
+        config: ActivityGoalTargetModel(id: 9, goalValue: 10, goalSuccessCriteria: .lessThan),
         totalValue: 15,
         expectedToday: .failure,
         expectedYesterday: .failure
@@ -626,15 +643,15 @@ class GoalEvaluationClientTests: XCTestCase {
       
       for testCase in testCases {
         // Create goal with explicit effective date
-        let goal: DaysOfWeekActivityGoal
+        let goal: DaysOfWeekActivityGoalModel
         if let config = testCase.config {
-          goal = DaysOfWeekActivityGoal.singleDayGoal(
+          goal = DaysOfWeekActivityGoalModel.singleDayGoal(
             day: day,
             config: config,
             effectiveCalendarDate: goalEffectiveDate
           )
         } else {
-          goal = DaysOfWeekActivityGoal.pausedGoal(effectiveCalendarDate: goalEffectiveDate)
+          goal = DaysOfWeekActivityGoalModel.pausedGoal(effectiveCalendarDate: goalEffectiveDate)
         }
         
         // Test evaluating "today"
@@ -671,11 +688,12 @@ class GoalEvaluationClientTests: XCTestCase {
   
   func test_givenDaysOfWeekActivityGoal_whenWeeksInterval2_thenEvaluatesEveryOtherWeek() {
     // Given - Sunday-only goal that repeats every 2 weeks
-    let goalConfig = ActivityGoalTarget(goalValue: 30, goalSuccessCriteria: .atLeast)
-    
-    let goal = DaysOfWeekActivityGoal.singleDayGoal(
+    let goalConfig = ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)
+
+    let goal = DaysOfWeekActivityGoalModel.singleDayGoal(
       day: .sunday,
       config: goalConfig,
+      effectiveCalendarDate: .knownMonday.addingWeeks(-1),
       weeksInterval: 2
     )
     
@@ -725,11 +743,11 @@ class GoalEvaluationClientTests: XCTestCase {
     }
   }
   
-  // MARK: - WeeksPeriodActivityGoal Tests
+  // MARK: - WeeksPeriodActivityGoalModel Tests
   
-  func test_givenWeeksPeriodActivityGoal_whenMidWeekWithNoSessions_thenIncomplete() {
+  func test_givenWeeksPeriodActivityGoalModel_whenMidWeekWithNoSessions_thenIncomplete() {
     // Given - weekly goal of 100 minutes
-    let goal = WeeksPeriodActivityGoal.testGoal(goalValue: 100)
+    let goal = WeeksPeriodActivityGoalModel.testGoal(goalValue: 100)
     
     // When - evaluating mid-week with no sessions
     let wednesday = CalendarDate.knownMonday.addingDays(2)
@@ -748,10 +766,10 @@ class GoalEvaluationClientTests: XCTestCase {
     )
   }
   
-  func test_givenWeeksPeriodActivityGoal_whenPeriodEnds_thenEvaluatesSuccessOrFailure() {
+  func test_givenWeeksPeriodActivityGoalModel_whenPeriodEnds_thenEvaluatesSuccessOrFailure() {
     // Given - weekly goal of 100 minutes
     let goalValue: Double = 100
-    let goal = WeeksPeriodActivityGoal.testGoal(goalValue: goalValue)
+    let goal = WeeksPeriodActivityGoalModel.testGoal(goalValue: goalValue)
     
     let sunday = CalendarDate.knownMonday.next(.sunday)
     let nextMonday = CalendarDate.knownMonday.next(.monday)
@@ -783,19 +801,19 @@ class GoalEvaluationClientTests: XCTestCase {
     )
   }
   
-  func test_givenWeeksPeriodActivityGoal_whenVariousCriteria_thenStateTransitionsCorrectly() {
+  func test_givenWeeksPeriodActivityGoalModel_whenVariousCriteria_thenStateTransitionsCorrectly() {
     // Given - three goals with different criteria, all targeting the same value
     let goalValue: Double = 100
     
-    let atLeastGoal = WeeksPeriodActivityGoal.testGoal(
+    let atLeastGoal = WeeksPeriodActivityGoalModel.testGoal(
       goalValue: goalValue,
       goalSuccessCriteria: .atLeast
     )
-    let exactlyGoal = WeeksPeriodActivityGoal.testGoal(
+    let exactlyGoal = WeeksPeriodActivityGoalModel.testGoal(
       goalValue: goalValue,
       goalSuccessCriteria: .exactly
     )
-    let lessThanGoal = WeeksPeriodActivityGoal.testGoal(
+    let lessThanGoal = WeeksPeriodActivityGoalModel.testGoal(
       goalValue: goalValue,
       goalSuccessCriteria: .lessThan
     )
@@ -898,10 +916,10 @@ class GoalEvaluationClientTests: XCTestCase {
     )
   }
   
-  func test_givenWeeksPeriodActivityGoal_whenSessionsAcrossMultipleDays_thenAccumulatesCorrectly() {
+  func test_givenWeeksPeriodActivityGoalModel_whenSessionsAcrossMultipleDays_thenAccumulatesCorrectly() {
     // Given - weekly goal of 100 minutes
     let goalValue: Double = 100
-    let goal = WeeksPeriodActivityGoal.testGoal(goalValue: goalValue)
+    let goal = WeeksPeriodActivityGoalModel.testGoal(goalValue: goalValue)
     
     // Total across the week equals exactly goalValue
     let totalValue = goalValue
@@ -926,19 +944,19 @@ class GoalEvaluationClientTests: XCTestCase {
   
   // MARK: - Session Calendar Date Filtering Tests
   
-  func test_givenEveryXDaysActivityGoal_whenSessionsFromDifferentDays_thenOnlyCountsEvaluationDateSessions() {
+  func test_givenEveryXDaysActivityGoalModel_whenSessionsFromDifferentDays_thenOnlyCountsEvaluationDateSessions() {
     // Given - daily goal of 10 minutes
     let goalValue: Double = 10
-    let goal = EveryXDaysActivityGoal.testGoal(goalValue: goalValue)
+    let goal = EveryXDaysActivityGoalModel.testGoal(goalValue: goalValue)
     
     let today = CalendarDate.today()
     let yesterday = today.addingDays(-1)
     let tomorrow = today.addingDays(1)
     
     // Sessions from different days
-    let yesterdaySession = ActivitySession.testSession(value: 5, completeCalendarDate: yesterday)
-    let todaySession = ActivitySession.testSession(value: 5, completeCalendarDate: today)
-    let tomorrowSession = ActivitySession.testSession(value: 5, completeCalendarDate: tomorrow)
+    let yesterdaySession = ActivitySessionModel.testSession(value: 5, completeCalendarDate: yesterday)
+    let todaySession = ActivitySessionModel.testSession(value: 5, completeCalendarDate: today)
+    let tomorrowSession = ActivitySessionModel.testSession(value: 5, completeCalendarDate: tomorrow)
     
     // When evaluating today - caller should only sum today's sessions
     let correctlyFilteredTotal = todaySession.value  // Just 5

@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
   name: "ActivitiesApp",
   platforms: [
-    .iOS(.v17)
+    .iOS(.v18)
   ],
   products: PackageTarget.allProducts,
   dependencies: [
@@ -39,7 +39,8 @@ let package = Package(
 //    PackageDependency.Mixpanel.packageDependency,
 //    PackageDependency.RevenueCat.packageDependency,
 //    PackageDependency.OneSignal.packageDependency,
-    PackageDependency.SwiftCustomDump.packageDependency
+    PackageDependency.SwiftCustomDump.packageDependency,
+    PackageDependency.GRDB.packageDependency
   ],
   targets: PackageTarget.allTargets
 )
@@ -50,6 +51,12 @@ let package = Package(
 enum PackageTarget: String, CaseIterable {
 
   private static let testCases: [Self] = [
+    .ActivitiesStreakEvaluationClientTests,
+
+    .ActivityGoalModelTests,
+
+    .DatabaseClientGRDBTests,
+    
     .GoalEvaluationClientTests
   ]
 
@@ -71,12 +78,29 @@ enum PackageTarget: String, CaseIterable {
 
   case ActivitiesListFeatureUIKitOld
 
+  case ActivitiesStreakEvaluationClient
+
+  case DatabaseClient
+  case DatabaseClientGRDB
+
   case GoalEvaluationClient
-  case GoalEvaluationClientTests
+  case GoalCreationClient
 
   case SharedModels
 
   case SharedUI
+
+  // Tests
+
+  case ActivitiesStreakEvaluationClientTests
+
+  case ActivityGoalModelTests
+
+  case DatabaseClientGRDBTests
+
+  case GoalCreationClientTests
+
+  case GoalEvaluationClientTests
 
   private var name: String {
     let packagePrefix = "ACT"
@@ -136,6 +160,48 @@ enum PackageTarget: String, CaseIterable {
         ]
       )
 
+    case .ActivitiesStreakEvaluationClient:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .GoalEvaluationClient,
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency
+        ]
+      )
+
+    case .DatabaseClient:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency
+        ]
+      )
+
+    case .DatabaseClientGRDB:
+      /*
+       Leaving this code here... I added GRDB and it wasn't showing up, I switched to this, and now it works.
+       Then I switched back to my createPackageTarget and it stays working. So no idea!
+       */
+//      return .target(
+//        name: "DatabaseClientGRDB",
+//        dependencies: [
+//          "DatabaseClient",
+//          .product(name: "GRDB", package: "GRDB.swift")
+//        ]
+//      )
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.GRDB.Product.GRDB.targetDependency
+        ]
+      )
+
     case .GoalEvaluationClient:
       return createPackageTarget(
         dependencies: createTargetDependencies(
@@ -145,12 +211,12 @@ enum PackageTarget: String, CaseIterable {
         ]
       )
 
-    case .GoalEvaluationClientTests:
-      return createPackageTestTarget(
+    case .GoalCreationClient:
+      return createPackageTarget(
         dependencies: createTargetDependencies(
-          .GoalEvaluationClient
+          .SharedModels
         ) + [
-
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency
         ]
       )
 
@@ -174,6 +240,54 @@ enum PackageTarget: String, CaseIterable {
         ],
         resources: [
           .process("Resources")
+        ]
+      )
+
+      // MARK: - Tests
+
+    case .ActivitiesStreakEvaluationClientTests:
+      return createPackageTestTarget(
+        dependencies: createTargetDependencies(
+          .ActivitiesStreakEvaluationClient,
+          .DatabaseClientGRDB
+        ) + [
+
+        ]
+      )
+
+    case .ActivityGoalModelTests:
+      return createPackageTestTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+
+        ]
+      )
+
+    case .DatabaseClientGRDBTests:
+      return createPackageTestTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClientGRDB
+        ) + [
+
+        ]
+      )
+
+    case .GoalCreationClientTests:
+      return createPackageTestTarget(
+        dependencies: createTargetDependencies(
+          .GoalCreationClient
+        ) + [
+
+        ]
+      )
+
+    case .GoalEvaluationClientTests:
+      return createPackageTestTarget(
+        dependencies: createTargetDependencies(
+          .GoalEvaluationClient
+        ) + [
+
         ]
       )
 
@@ -845,10 +959,10 @@ extension PackageDependency {
       case ActivityLogClient
       case ActivityLogClientLive
 
-      case ActivitySessionEditFeature
+      case ActivitySessionModelEditFeature
 
-      case ActivitySessionsClient
-      case ActivitySessionsClientLive
+      case ActivitySessionModelsClient
+      case ActivitySessionModelsClientLive
 
       case AudioPlayerFeature
 
@@ -1050,6 +1164,30 @@ extension PackageDependency {
 
     enum Product: String {
       case FacebookCore
+
+      var targetDependency: Target.Dependency {
+        .product(name: self.rawValue, package: package)
+      }
+    }
+  }
+
+}
+
+// MARK: - GRDB
+extension PackageDependency {
+
+  enum GRDB {
+    static let package = "GRDB.swift"
+    static var packageDependency: Package.Dependency {
+      .package(
+        url: "https://github.com/groue/GRDB.swift",
+        exact: "7.5.0"
+      )
+    }
+
+    enum Product: String {
+      case GRDB
+      case GRDBDynamic = "GRDB-dynamic"
 
       var targetDependency: Target.Dependency {
         .product(name: self.rawValue, package: package)
