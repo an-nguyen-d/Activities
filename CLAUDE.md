@@ -33,6 +33,13 @@ xcodebuild -scheme Activities -configuration Debug
 
 # Build for release
 xcodebuild -scheme Activities -configuration Release
+
+# Build specific package target (for checking compile errors/warnings)
+./build_target.sh ACT.DatabaseClientGRDB
+./build_target.sh ACT.SharedModels
+
+# Manual target build
+xcodebuild build -scheme "ACT.DatabaseClientGRDB" -destination "platform=iOS Simulator,name=iPhone 16,OS=18.5"
 ```
 
 ### Test Commands
