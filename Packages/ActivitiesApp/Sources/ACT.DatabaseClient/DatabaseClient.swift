@@ -188,6 +188,18 @@ public struct DatabaseClient: Sendable {
   }
   public var observeActivityTags: @Sendable (ObserveActivityTags.Request) async throws -> ObserveActivityTags.Response
 
+  public enum ObserveActivity {
+    public struct Request: Sendable {
+      public let id: ActivityModel.ID
+      
+      public init(id: ActivityModel.ID) {
+        self.id = id
+      }
+    }
+    public typealias Response = AsyncThrowingStream<ActivityModel?, Error>
+  }
+  public var observeActivity: @Sendable (ObserveActivity.Request) async throws -> ObserveActivity.Response
+
   // MARK: - Goal
 
   public enum CreateGoalReplacingExisting {
@@ -388,6 +400,7 @@ public struct DatabaseClient: Sendable {
     fetchActivity: @Sendable @escaping (FetchActivity.Request) async throws -> FetchActivity.Response,
     fetchActivitiesNeedingEvaluation: @Sendable @escaping (FetchActivitiesNeedingEvaluation.Request) async throws -> FetchActivitiesNeedingEvaluation.Response,
     updateActivity: @Sendable @escaping (UpdateActivity.Request) async throws -> UpdateActivity.Response,
+    observeActivity: @Sendable @escaping (ObserveActivity.Request) async throws -> ObserveActivity.Response,
 
     createActivityTag: @Sendable @escaping (CreateActivityTag.Request) async throws -> CreateActivityTag.Response,
     updateActivityTag: @Sendable @escaping (UpdateActivityTag.Request) async throws -> UpdateActivityTag.Response,
@@ -413,6 +426,7 @@ public struct DatabaseClient: Sendable {
     self.fetchActivity = fetchActivity
     self.fetchActivitiesNeedingEvaluation = fetchActivitiesNeedingEvaluation
     self.updateActivity = updateActivity
+    self.observeActivity = observeActivity
 
     self.createActivityTag = createActivityTag
     self.updateActivityTag = updateActivityTag

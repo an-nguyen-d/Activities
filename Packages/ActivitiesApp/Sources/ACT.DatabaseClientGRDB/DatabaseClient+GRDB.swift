@@ -309,6 +309,31 @@ extension DatabaseClient {
 
       },
 
+      observeActivity: { request in
+        AsyncThrowingStream { continuation in
+          Task { @MainActor in
+            let observation = ValueObservation
+              .tracking { db in
+                try ActivityRecord
+                  .filter(Column("id") == request.id.rawValue)
+                  .fetchOne(db)
+              }
+              .start(
+                in: dbQueue,
+                onError: { error in continuation.finish(throwing: error) },
+                onChange: { record in
+                  let model = record.map(GRDBMapper.MapActivity.toModel)
+                  continuation.yield(model)
+                }
+              )
+
+            continuation.onTermination = { _ in
+              observation.cancel()
+            }
+          }
+        }
+      },
+
       // MARK: -
 
       createActivityTag: { request in
