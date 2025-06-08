@@ -1,7 +1,7 @@
 import Foundation
 import ACT_SharedModels
 
-public struct GoalEvaluationClient {
+public struct GoalEvaluationClient: Sendable {
 
   public enum EvaluateStatus {
     public struct Request {
@@ -9,7 +9,7 @@ public struct GoalEvaluationClient {
       /// The goal to evaluate. Must be effective (not from the future).
       /// Precondition: goal.effectiveCalendarDate <= currentDate
       /// Use goal selection logic to pick the correct goal before calling this function.
-      public let goal: ActivityGoalProtocol
+      public let goal: ActivityGoal.Modelling
 
       /// Sessions filtered to the relevant evaluation period.
       /// For daily goals: sessions completed on evaluationDate only
@@ -22,7 +22,7 @@ public struct GoalEvaluationClient {
       public let currentDate: CalendarDate
 
       public init(
-        goal: ActivityGoalProtocol,
+        goal: ActivityGoal.Modelling,
         sessionsInGoalPeriodValueTotal: Double,
         evaluationDate: CalendarDate,
         currentDate: CalendarDate
