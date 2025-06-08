@@ -57,6 +57,8 @@ enum PackageTarget: String, CaseIterable {
 
     .DatabaseClientGRDBTests,
     
+    .GoalCreationClientTests,
+    
     .GoalEvaluationClientTests
   ]
 

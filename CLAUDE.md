@@ -37,14 +37,15 @@ xcodebuild -scheme Activities -configuration Release
 
 ### Test Commands
 ```bash
-# Run all tests
-xcodebuild test -scheme Activities
+# Run ALL unit tests (reads from Package.swift testCases automatically)
+./run_tests_fast.sh
 
-# Test specific module
-xcodebuild test -scheme ACT.GoalEvaluationClient
-xcodebuild test -scheme ACT.DatabaseClientGRDB
-xcodebuild test -scheme ACT.ActivitiesStreakEvaluationClient
-xcodebuild test -scheme ACT.GoalCreationClient
+# Run ALL tests individually (slower but more detailed)
+./run_all_tests.sh
+
+# Manual commands
+xcodebuild test -scheme Activities -destination 'platform=macOS'
+xcodebuild test -scheme ACT.GoalEvaluationClient -destination 'platform=macOS'
 ```
 
 ### Working with Swift Package
@@ -62,6 +63,26 @@ swift build --package-path Packages/ActivitiesApp --target ACT.SharedModels
 - **CustomDump**: Enhanced test assertions (from Point-Free)
 - **Test Doubles**: Each client has `.testValue` implementations
 - **Test Organization**: Unit tests per module, edge case tests, integration tests
+- **Automated Testing**: `./run_tests_fast.sh` auto-discovers tests from Package.swift testCases array
+
+## Development Workflow - CRITICAL
+
+**ALWAYS run tests before git operations:**
+
+```bash
+# 1. BEFORE every git commit - run all tests
+./run_tests_fast.sh
+
+# 2. Only commit if tests pass
+git add .
+git commit -m "Your commit message"
+
+# 3. BEFORE every git push - run tests again  
+./run_tests_fast.sh
+git push
+```
+
+**Test Discovery**: Adding new tests is automatic - just add the test target to the `testCases` array in `/Packages/ActivitiesApp/Package.swift` and the script will discover and run it.
 
 ## Important Technical Details
 
