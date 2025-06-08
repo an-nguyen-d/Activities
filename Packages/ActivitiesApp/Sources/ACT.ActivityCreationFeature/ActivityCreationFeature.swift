@@ -2,6 +2,9 @@ import Foundation
 import ComposableArchitecture
 import ElixirShared
 import ACT_SharedModels
+import ACT_DaysOfWeekGoalCreationFeature
+import ACT_EveryXDaysGoalCreationFeature
+import ACT_WeeksPeriodGoalCreationFeature
 
 @Reducer
 public struct ActivityCreationFeature {
@@ -20,6 +23,9 @@ public struct ActivityCreationFeature {
     public var selectedSessionUnit: SessionUnitType = .integer
     public var customUnitName: String = "Sessions"
     public var goal: String? = nil
+    
+    @Presents
+    public var destination: Destination.State?
 
     public enum SessionUnitType: Sendable, Equatable, CaseIterable {
       case integer
@@ -34,6 +40,7 @@ public struct ActivityCreationFeature {
         }
       }
     }
+    
 
     public var goalDescription: String {
       return goal ?? "No goal"
@@ -45,6 +52,52 @@ public struct ActivityCreationFeature {
 
     public init() {}
   }
+  
+  public enum GoalSelectionAction: Equatable {
+    case daysOfWeek
+    case everyXDays
+    case weeksPeriod
+  }
+  
+  @Reducer
+  public struct Destination {
+    @CasePathable
+    public enum State: Equatable {
+      case daysOfWeekGoalCreation(DaysOfWeekGoalCreationFeature.State)
+      case everyXDaysGoalCreation(EveryXDaysGoalCreationFeature.State)
+      case weeksPeriodGoalCreation(WeeksPeriodGoalCreationFeature.State)
+      
+      public enum Alert: Equatable {
+        case goalSelection
+      }
+      case alert(Alert)
+    }
+    
+    @CasePathable
+    public enum Action: Equatable {
+      case daysOfWeekGoalCreation(DaysOfWeekGoalCreationFeature.Action)
+      case everyXDaysGoalCreation(EveryXDaysGoalCreationFeature.Action)
+      case weeksPeriodGoalCreation(WeeksPeriodGoalCreationFeature.Action)
+    }
+    
+    let dependencies: Dependencies
+    
+    init(dependencies: Dependencies) {
+      self.dependencies = dependencies
+    }
+    
+    public var body: some Reducer<State, Action> {
+      Scope(state: \.daysOfWeekGoalCreation, action: \.daysOfWeekGoalCreation) {
+        DaysOfWeekGoalCreationFeature(dependencies: dependencies)
+      }
+      Scope(state: \.everyXDaysGoalCreation, action: \.everyXDaysGoalCreation) {
+        EveryXDaysGoalCreationFeature(dependencies: dependencies)
+      }
+      Scope(state: \.weeksPeriodGoalCreation, action: \.weeksPeriodGoalCreation) {
+        WeeksPeriodGoalCreationFeature(dependencies: dependencies)
+      }
+    }
+  }
 
   public enum Action: TCAFeatureAction, Equatable {
     public enum ViewAction: Equatable {
@@ -54,6 +107,12 @@ public struct ActivityCreationFeature {
       case sessionUnitChanged(State.SessionUnitType)
       case customUnitNameChanged(String)
       case editGoalButtonTapped
+      case didSelectAlertAction
+
+      public enum Alert: Equatable {
+        case goalSelection(GoalSelectionAction)
+      }
+      case alert(Alert)
     }
 
     public enum InternalAction: Equatable {
@@ -67,11 +126,15 @@ public struct ActivityCreationFeature {
     case view(ViewAction)
     case _internal(InternalAction)
     case delegate(DelegateAction)
+    case destination(PresentationAction<Destination.Action>)
   }
 
   public var body: some Reducer<State, Action> {
     Reduce { state, action in
       core(into: &state, action: action)
+    }
+    .ifLet(\.$destination, action: \.destination) {
+      Destination(dependencies: dependencies)
     }
   }
 
@@ -84,6 +147,43 @@ public struct ActivityCreationFeature {
       return coreInternal(into: &state, action: action)
 
     case .delegate:
+      return .none
+      
+    case let .destination(.presented(destinationAction)):
+      switch destinationAction {
+      case let .daysOfWeekGoalCreation(.delegate(delegateAction)):
+        switch delegateAction {
+        case .dismissed:
+          state.destination = nil
+          return .none
+        case .goalCreated:
+          state.destination = nil
+          return .none
+        }
+
+      case let .everyXDaysGoalCreation(.delegate(delegateAction)):
+        switch delegateAction {
+        case .dismissed:
+          state.destination = nil
+          return .none
+        case .goalCreated:
+          state.destination = nil
+          return .none
+        }
+      case let .weeksPeriodGoalCreation(.delegate(delegateAction)):
+        switch delegateAction {
+        case .dismissed:
+          state.destination = nil
+          return .none
+        case .goalCreated:
+          state.destination = nil
+          return .none
+        }
+      default:
+        return .none
+      }
+      
+    case .destination:
       return .none
     }
   }
@@ -115,8 +215,26 @@ public struct ActivityCreationFeature {
       return .none
 
     case .editGoalButtonTapped:
-      // TODO: Navigate to goal creation
+      state.destination = .alert(.goalSelection)
       return .none
+
+    case .didSelectAlertAction:
+      state.destination = nil
+      return .none
+
+    case let .alert(action):
+      switch action {
+      case let .goalSelection(goalAction):
+        switch goalAction {
+        case .daysOfWeek:
+          state.destination = .daysOfWeekGoalCreation(DaysOfWeekGoalCreationFeature.State())
+        case .everyXDays:
+          state.destination = .everyXDaysGoalCreation(EveryXDaysGoalCreationFeature.State())
+        case .weeksPeriod:
+          state.destination = .weeksPeriodGoalCreation(WeeksPeriodGoalCreationFeature.State())
+        }
+        return .none
+      }
     }
   }
 
@@ -124,4 +242,5 @@ public struct ActivityCreationFeature {
     switch action {
     }
   }
+
 }

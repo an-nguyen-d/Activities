@@ -83,6 +83,15 @@ enum PackageTarget: String, CaseIterable {
   case ActivityCreationFeature
   case ActivityCreationFeatureiOS
 
+  case DaysOfWeekGoalCreationFeature
+  case DaysOfWeekGoalCreationFeatureiOS
+  
+  case EveryXDaysGoalCreationFeature
+  case EveryXDaysGoalCreationFeatureiOS
+  
+  case WeeksPeriodGoalCreationFeature
+  case WeeksPeriodGoalCreationFeatureiOS
+
   case ActivitiesStreakEvaluationClient
 
   case DatabaseClient
@@ -127,7 +136,7 @@ enum PackageTarget: String, CaseIterable {
     case .ActivitiesListFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
-
+          .ActivityCreationFeature
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -169,7 +178,10 @@ enum PackageTarget: String, CaseIterable {
     case .ActivityCreationFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
-          .SharedModels
+          .SharedModels,
+          .DaysOfWeekGoalCreationFeature,
+          .EveryXDaysGoalCreationFeature,
+          .WeeksPeriodGoalCreationFeature
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -179,7 +191,73 @@ enum PackageTarget: String, CaseIterable {
     case .ActivityCreationFeatureiOS:
       return createPackageTarget(
         dependencies: createTargetDependencies(
-          .ActivityCreationFeature
+          .ActivityCreationFeature,
+          .DaysOfWeekGoalCreationFeature,
+          .DaysOfWeekGoalCreationFeatureiOS,
+          .EveryXDaysGoalCreationFeature,
+          .EveryXDaysGoalCreationFeatureiOS,
+          .WeeksPeriodGoalCreationFeature,
+          .WeeksPeriodGoalCreationFeatureiOS
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .DaysOfWeekGoalCreationFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .DaysOfWeekGoalCreationFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DaysOfWeekGoalCreationFeature
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .EveryXDaysGoalCreationFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .EveryXDaysGoalCreationFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .EveryXDaysGoalCreationFeature
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .WeeksPeriodGoalCreationFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .WeeksPeriodGoalCreationFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .WeeksPeriodGoalCreationFeature
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
