@@ -13,6 +13,24 @@ public enum CalendarDateRange: Sendable {
       self = .multipleDays(start: start, end: end)
     }
   }
+  
+  public var start: CalendarDate {
+    switch self {
+    case .singleDay(let date):
+      return date
+    case .multipleDays(let start, _):
+      return start
+    }
+  }
+  
+  public var end: CalendarDate {
+    switch self {
+    case .singleDay(let date):
+      return date
+    case .multipleDays(_, let end):
+      return end
+    }
+  }
 }
 
 public struct CalendarDate: Equatable, Comparable, Sendable {
@@ -157,5 +175,20 @@ extension CalendarDate {
     }
 
     return date
+  }
+  
+  /// Returns the start of the week containing this date
+  /// - Parameter firstWeekday: The day that starts the week (default: Monday)
+  /// - Returns: The CalendarDate representing the start of the week
+  public func startOfWeek(firstWeekday: DayOfWeek = .monday) -> CalendarDate {
+    let currentDay = self.dayOfWeek()
+    
+    // Calculate days to go back to reach the first weekday
+    var daysBack = currentDay.rawValue - firstWeekday.rawValue
+    if daysBack < 0 {
+      daysBack += DayOfWeek.daysPerWeek
+    }
+    
+    return addingDays(-daysBack)
   }
 }

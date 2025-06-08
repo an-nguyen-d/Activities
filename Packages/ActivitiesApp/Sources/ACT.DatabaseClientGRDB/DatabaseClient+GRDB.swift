@@ -334,6 +334,60 @@ extension DatabaseClient {
         }
       },
 
+      observeActivitiesList: { request in
+        AsyncThrowingStream { continuation in
+          Task { @MainActor in
+            let observation = ValueObservation
+              .tracking { db -> [(activity: ActivityRecord, goal: any ActivityGoal.Modelling, sessions: [ActivitySessionRecord])] in
+                let activities = try ActivityRecord.fetchAll(db)
+                
+                return try activities.compactMap { activity in
+                  // Fetch latest effective goal for this activity (ordered by effectiveCalendarDate desc)
+                  guard let goalRecord = try GoalRecord
+                    .filter(Column("activityId") == activity.id!)
+                    .order(Column("effectiveCalendarDate").desc)
+                    .limit(1)
+                    .fetchOne(db) else {
+                    assertionFailure("Activity \(activity.id!) has no effective goal - this violates business logic assumption")
+                    return nil // Skip this activity
+                  }
+                  
+                  guard let effectiveGoal = try fetchGoalModel(from: goalRecord, db: db) else {
+                    assertionFailure("Failed to parse goal for activity \(activity.id!)")
+                    return nil // Skip this activity
+                  }
+                  
+                  // Fetch all sessions for this activity (sorted by completeDate desc)
+                  let allSessions = try ActivitySessionRecord
+                    .filter(Column("activityId") == activity.id!)
+                    .order(Column("completeDate").desc)
+                    .fetchAll(db)
+                  
+                  return (activity, effectiveGoal, allSessions)
+                }
+              }
+              .start(
+                in: dbQueue,
+                onError: { error in continuation.finish(throwing: error) },
+                onChange: { results in
+                  let models = results.map { result in
+                    ActivityListItemModel(
+                      activity: GRDBMapper.MapActivity.toModel(from: result.activity),
+                      effectiveGoal: result.goal,
+                      sessions: result.sessions.map(GRDBMapper.MapActivitySession.toModel)
+                    )
+                  }
+                  continuation.yield(models)
+                }
+              )
+
+            continuation.onTermination = { _ in
+              observation.cancel()
+            }
+          }
+        }
+      },
+
       // MARK: -
 
       createActivityTag: { request in
