@@ -342,10 +342,8 @@ extension DatabaseClient {
                 let activities = try ActivityRecord.fetchAll(db)
                 
                 return try activities.compactMap { activity in
-                  // Fetch latest effective goal for this activity (ordered by effectiveCalendarDate desc)
-                  guard let goalRecord = try GoalRecord
-                    .filter(Column("activityId") == activity.id!)
-                    .order(Column("effectiveCalendarDate").desc)
+                  // Fetch latest effective goal for this activity using shared query helper
+                  guard let goalRecord = try goalRecordsQuery(for: activity.id!)
                     .limit(1)
                     .fetchOne(db) else {
                     assertionFailure("Activity \(activity.id!) has no effective goal - this violates business logic assumption")
@@ -378,6 +376,33 @@ extension DatabaseClient {
                     )
                   }
                   continuation.yield(models)
+                }
+              )
+
+            continuation.onTermination = { _ in
+              observation.cancel()
+            }
+          }
+        }
+      },
+
+      observeActivityGoals: { request in
+        AsyncThrowingStream { continuation in
+          Task { @MainActor in
+            let observation = ValueObservation
+              .tracking { db -> [any ActivityGoal.Modelling] in
+                let goalRecords = try goalRecordsQuery(for: request.activityId.rawValue)
+                  .fetchAll(db)
+                
+                return try goalRecords.compactMap { goalRecord in
+                  try fetchGoalModel(from: goalRecord, db: db)
+                }
+              }
+              .start(
+                in: dbQueue,
+                onError: { error in continuation.finish(throwing: error) },
+                onChange: { goals in
+                  continuation.yield(goals)
                 }
               )
 
@@ -646,6 +671,13 @@ extension DatabaseClient {
 
 
     )
+  }
+
+  /// Returns goal records for an activity, sorted by effectiveCalendarDate descending (latest first)
+  private static func goalRecordsQuery(for activityId: Int64) -> QueryInterfaceRequest<GoalRecord> {
+    return GoalRecord
+      .filter(Column("activityId") == activityId)
+      .order(Column("effectiveCalendarDate").desc)
   }
 
   private static func fetchGoalModel(from goalRecord: GoalRecord, db: Database) throws -> (any ActivityGoal.Modelling)? {

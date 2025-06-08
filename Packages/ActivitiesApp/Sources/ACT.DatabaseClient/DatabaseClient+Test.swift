@@ -24,6 +24,11 @@ extension DatabaseClient {
           continuation.finish()
         }
       },
+      observeActivityGoals: { _ in
+        AsyncThrowingStream { continuation in
+          continuation.finish()
+        }
+      },
       createActivityTag: { _ in fatalError() },
       updateActivityTag: { _ in fatalError() },
       deleteActivityTag: { _ in fatalError() },
