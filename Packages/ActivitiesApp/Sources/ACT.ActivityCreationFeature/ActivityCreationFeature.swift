@@ -5,70 +5,123 @@ import ACT_SharedModels
 
 @Reducer
 public struct ActivityCreationFeature {
-    
-    public typealias Dependencies = Any
-    
-    private let dependencies: Dependencies
-    
-    public init(dependencies: Dependencies) {
-        self.dependencies = dependencies
-    }
-    
-    @ObservableState
-    public struct State: Equatable {
-        public init() {}
-    }
-    
-    public enum Action: TCAFeatureAction, Equatable {
-        public enum ViewAction: Equatable {
-            case cancelButtonTapped
-            case saveButtonTapped
+
+  public typealias Dependencies = Any
+
+  private let dependencies: Dependencies
+
+  public init(dependencies: Dependencies) {
+    self.dependencies = dependencies
+  }
+
+  @ObservableState
+  public struct State: Equatable {
+    public var activityName: String = ""
+    public var selectedSessionUnit: SessionUnitType = .integer
+    public var customUnitName: String = "Sessions"
+    public var goal: String? = nil
+
+    public enum SessionUnitType: Sendable, Equatable, CaseIterable {
+      case integer
+      case floating
+      case time
+
+      public var displayName: String {
+        switch self {
+        case .integer: return "Integer"
+        case .floating: return "Floating"
+        case .time: return "Time"
         }
-        
-        public enum InternalAction: Equatable {
-            
-        }
-        
-        public enum DelegateAction: Equatable {
-            case activityCreated(ActivityModel)
-        }
-        
-        case view(ViewAction)
-        case _internal(InternalAction)
-        case delegate(DelegateAction)
+      }
     }
-    
-    public var body: some Reducer<State, Action> {
-        Reduce { state, action in
-            core(into: &state, action: action)
-        }
+
+    public var goalDescription: String {
+      return goal ?? "No goal"
     }
-    
-    private func core(into state: inout State, action: Action) -> Effect<Action> {
-        switch action {
-        case let .view(action):
-            return coreView(into: &state, action: action)
-            
-        case let ._internal(action):
-            return coreInternal(into: &state, action: action)
-            
-        case .delegate:
-            return .none
-        }
+
+    public var isValid: Bool {
+      return !activityName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
-    
-    private func coreView(into state: inout State, action: Action.ViewAction) -> Effect<Action> {
-        switch action {
-        case .cancelButtonTapped:
-            return .none
-            
-        case .saveButtonTapped:
-            return .none
-        }
+
+    public init() {}
+  }
+
+  public enum Action: TCAFeatureAction, Equatable {
+    public enum ViewAction: Equatable {
+      case cancelButtonTapped
+      case saveButtonTapped
+      case activityNameChanged(String)
+      case sessionUnitChanged(State.SessionUnitType)
+      case customUnitNameChanged(String)
+      case editGoalButtonTapped
     }
-    
-    private func coreInternal(into state: inout State, action: Action.InternalAction) -> Effect<Action> {
-        switch action {
-        }
+
+    public enum InternalAction: Equatable {
+
     }
+
+    public enum DelegateAction: Equatable {
+      case activityCreated(ActivityModel)
+    }
+
+    case view(ViewAction)
+    case _internal(InternalAction)
+    case delegate(DelegateAction)
+  }
+
+  public var body: some Reducer<State, Action> {
+    Reduce { state, action in
+      core(into: &state, action: action)
+    }
+  }
+
+  private func core(into state: inout State, action: Action) -> Effect<Action> {
+    switch action {
+    case let .view(action):
+      return coreView(into: &state, action: action)
+
+    case let ._internal(action):
+      return coreInternal(into: &state, action: action)
+
+    case .delegate:
+      return .none
+    }
+  }
+
+  private func coreView(into state: inout State, action: Action.ViewAction) -> Effect<Action> {
+    switch action {
+    case .cancelButtonTapped:
+      return .none
+
+    case .saveButtonTapped:
+      return .none
+
+    case let .activityNameChanged(name):
+      state.activityName = name
+      return .none
+
+    case let .sessionUnitChanged(unit):
+      state.selectedSessionUnit = unit
+      // Reset custom unit name when switching to time
+      if unit == .time {
+        state.customUnitName = ""
+      } else if state.customUnitName.isEmpty {
+        state.customUnitName = "Sessions"
+      }
+      return .none
+
+    case let .customUnitNameChanged(name):
+      state.customUnitName = name
+      return .none
+
+    case .editGoalButtonTapped:
+      // TODO: Navigate to goal creation
+      return .none
+    }
+  }
+
+  private func coreInternal(into state: inout State, action: Action.InternalAction) -> Effect<Action> {
+    switch action {
+    }
+  }
 }

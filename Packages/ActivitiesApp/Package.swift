@@ -440,8 +440,8 @@ extension PackageDependency {
 
     static var packageDependency: Package.Dependency {
       .package(
-        name: "ElixirShared",
-        path: "/Users/annguyen/Documents/2. Areas/Xcode Projects/Genesis/Packages/ElixirShared"
+        url: "file:///Users/annguyen/Documents/2. Areas/Xcode Projects/Genesis/Packages/ElixirShared",
+        branch: "main"
       )
     }
 
