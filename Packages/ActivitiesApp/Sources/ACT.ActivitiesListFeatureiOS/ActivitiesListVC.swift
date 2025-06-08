@@ -58,8 +58,19 @@ public final class ActivitiesListVC: BaseViewController {
       collectionView: contentView.collectionView
     )
 
+    setupNavigationBar()
     observeStore()
     bindView()
+  }
+  
+  private func setupNavigationBar() {
+    title = "Activities"
+    
+    navigationItem.rightBarButtonItem = UIBarButtonItem(
+      barButtonSystemItem: .add,
+      target: self,
+      action: #selector(addButtonTapped)
+    )
   }
 
   private func observeStore() {
@@ -72,6 +83,10 @@ public final class ActivitiesListVC: BaseViewController {
 
   private func bindView() {
     // Binding the view to send actions into viewStore
+  }
+  
+  @objc private func addButtonTapped() {
+    viewStore.send(.addButtonTapped)
   }
 
 }

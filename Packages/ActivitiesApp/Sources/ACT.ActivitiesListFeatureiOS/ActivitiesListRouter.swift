@@ -1,6 +1,7 @@
 import UIKit
 import ComposableArchitecture
 import ACT_ActivitiesListFeature
+import ACT_ActivityCreationFeatureiOS
 
 @MainActor
 final class ActivitiesListRouter {
@@ -27,7 +28,18 @@ final class ActivitiesListRouter {
   }
 
   private func bindRouting() {
-
+    viewController?.present(
+      item: $store.scope(
+        state: \.destination?.activityCreation,
+        action: \.destination.activityCreation
+      )
+    ) { [dependencies] store in
+      let activityCreationVC = ActivityCreationVC(
+        store: store,
+        dependencies: dependencies
+      )
+      return UINavigationController(rootViewController: activityCreationVC)
+    }
   }
 
 }

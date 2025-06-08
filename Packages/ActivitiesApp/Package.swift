@@ -79,6 +79,9 @@ enum PackageTarget: String, CaseIterable {
   case ActivitiesListFeatureOld
 
   case ActivitiesListFeatureUIKitOld
+  
+  case ActivityCreationFeature
+  case ActivityCreationFeatureiOS
 
   case ActivitiesStreakEvaluationClient
 
@@ -135,7 +138,8 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .ActivitiesListFeature,
-          .SharedUI
+          .SharedUI,
+          .ActivityCreationFeatureiOS
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -156,6 +160,26 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .ActivitiesListFeatureOld
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityCreationFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityCreationFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivityCreationFeature
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency

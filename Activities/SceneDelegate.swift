@@ -30,11 +30,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     )
     
     // Option 1: Set directly as root
-    window?.rootViewController = destinationVC
+//    window?.rootViewController = destinationVC
     
     // Option 2: Wrap in navigation controller (recommended)
-    // let navController = UINavigationController(rootViewController: destinationVC)
-    // window?.rootViewController = navController
+     let navController = UINavigationController(rootViewController: destinationVC)
+     window?.rootViewController = navController
     
     // Make window visible
     window?.makeKeyAndVisible()

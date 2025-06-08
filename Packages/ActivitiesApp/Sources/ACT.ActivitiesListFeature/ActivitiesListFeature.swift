@@ -1,6 +1,7 @@
 import ElixirShared
 import ComposableArchitecture
 import Foundation
+import ACT_ActivityCreationFeature
 
 @Reducer
 public struct ActivitiesListFeature {
@@ -19,7 +20,7 @@ public struct ActivitiesListFeature {
   public enum Action: TCAFeatureAction, Equatable {
 
     public enum ViewAction: Equatable {
-
+      case addButtonTapped
     }
 
     public enum InternalAction: Equatable {
@@ -42,12 +43,12 @@ public struct ActivitiesListFeature {
 
     @CasePathable
     public enum State: Equatable {
-
+      case activityCreation(ActivityCreationFeature.State)
     }
 
     @CasePathable
     public enum Action: Equatable {
-
+      case activityCreation(ActivityCreationFeature.Action)
     }
 
     let dependencies: Dependencies
@@ -57,7 +58,9 @@ public struct ActivitiesListFeature {
     }
 
     public var body : some Reducer<State, Action> {
-      EmptyReducer()
+      Scope(state: \.activityCreation, action: \.activityCreation) {
+        ActivityCreationFeature(dependencies: dependencies)
+      }
     }
 
   }
@@ -101,10 +104,10 @@ public struct ActivitiesListFeature {
 
   private func coreView(into state: inout State, action: Action.ViewAction) -> Effect<Action> {
     switch action {
-
-
+    case .addButtonTapped:
+      state.destination = .activityCreation(.init())
+      return .none
     }
-    return .none
   }
 
   // MARK: - InternalAction
@@ -126,7 +129,18 @@ public struct ActivitiesListFeature {
 
     case .presented(let action):
       switch action {
-
+      case .activityCreation(let action):
+        switch action {
+        case .delegate(let delegateAction):
+          switch delegateAction {
+          case .activityCreated(let activity):
+            // TODO: Handle activity created
+            state.destination = nil
+            return .none
+          }
+        default:
+          return .none
+        }
       }
 
     }
