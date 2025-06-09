@@ -177,6 +177,10 @@ public final class ActivityTargetInputView: BaseView {
     titleLabel.text = title
   }
   
+  public func setTitleColor(_ color: UIColor) {
+    titleLabel.textColor = color
+  }
+  
   // MARK: - Private Methods
   
   private func updateForUnitType() {

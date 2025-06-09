@@ -211,7 +211,8 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .DatabaseClient,
-          .SharedModels
+          .SharedModels,
+          .SharedUI
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -221,7 +222,9 @@ enum PackageTarget: String, CaseIterable {
     case .DaysOfWeekGoalCreationFeatureiOS:
       return createPackageTarget(
         dependencies: createTargetDependencies(
-          .DaysOfWeekGoalCreationFeature
+          .DaysOfWeekGoalCreationFeature,
+          .SharedUI,
+          .Shared
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency

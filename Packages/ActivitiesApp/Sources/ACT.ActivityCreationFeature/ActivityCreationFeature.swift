@@ -214,21 +214,22 @@ public struct ActivityCreationFeature {
     case let .alert(action):
       switch action {
       case let .goalSelection(goalAction):
+        let sessionUnit: ActivityModel.SessionUnit
+        switch state.selectedSessionUnit {
+        case .integer:
+          sessionUnit = .integer(state.customUnitName.isEmpty ? "sessions" : state.customUnitName)
+        case .floating:
+          sessionUnit = .floating(state.customUnitName.isEmpty ? "units" : state.customUnitName)
+        case .time:
+          sessionUnit = .seconds
+        }
+
         switch goalAction {
         case .daysOfWeek:
-          state.destination = .daysOfWeekGoalCreation(DaysOfWeekGoalCreationFeature.State())
+          state.destination = .daysOfWeekGoalCreation(DaysOfWeekGoalCreationFeature.State(sessionUnit: sessionUnit))
         case .everyXDays:
-          state.destination = .everyXDaysGoalCreation(EveryXDaysGoalCreationFeature.State())
+          state.destination = .everyXDaysGoalCreation(EveryXDaysGoalCreationFeature.State(sessionUnit: sessionUnit))
         case .weeksPeriod:
-          let sessionUnit: ActivityModel.SessionUnit
-          switch state.selectedSessionUnit {
-          case .integer:
-            sessionUnit = .integer(state.customUnitName.isEmpty ? "sessions" : state.customUnitName)
-          case .floating:
-            sessionUnit = .floating(state.customUnitName.isEmpty ? "units" : state.customUnitName)
-          case .time:
-            sessionUnit = .seconds
-          }
           state.destination = .weeksPeriodGoalCreation(WeeksPeriodGoalCreationFeature.State(sessionUnit: sessionUnit))
         }
         return .none

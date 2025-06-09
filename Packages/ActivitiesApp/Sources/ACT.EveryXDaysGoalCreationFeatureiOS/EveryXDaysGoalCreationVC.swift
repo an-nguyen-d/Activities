@@ -212,6 +212,9 @@ public final class EveryXDaysGoalCreationVC: UIViewController {
       self.targetView.setValue(self.viewStore.targetValue)
       self.targetView.setSuccessCriteria(self.viewStore.successCriteria)
       
+      // Update target title color based on validation
+      self.updateTargetTitleColor()
+      
       // Update save button state
       self.navigationItem.rightBarButtonItem?.isEnabled = self.viewStore.isValid
       
@@ -276,5 +279,32 @@ public final class EveryXDaysGoalCreationVC: UIViewController {
     case .seconds:
       return ""
     }
+  }
+  
+  private func updateTargetTitleColor() {
+    let validationState = validateTarget()
+    
+    switch validationState {
+    case .valid:
+      targetView.setTitleColor(.systemGreen)
+    case .invalid:
+      targetView.setTitleColor(.systemRed)
+    case .empty:
+      targetView.setTitleColor(.label)
+    }
+  }
+  
+  private func validateTarget() -> ValidationState {
+    guard let value = viewStore.targetValue, let criteria = viewStore.successCriteria else {
+      return .empty
+    }
+    
+    return ActivityGoalTargetModel.isValidCombination(value: value, criteria: criteria) ? .valid : .invalid
+  }
+  
+  private enum ValidationState {
+    case valid
+    case invalid
+    case empty
   }
 }
