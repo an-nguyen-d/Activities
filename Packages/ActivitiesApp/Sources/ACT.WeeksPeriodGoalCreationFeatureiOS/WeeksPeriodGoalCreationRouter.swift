@@ -4,7 +4,7 @@ import ACT_WeeksPeriodGoalCreationFeature
 import ACT_SharedUI
 
 @MainActor
-final class WeeksPeriodGoalCreationRouter: TimePickerPresenting {
+final class WeeksPeriodGoalCreationRouter {
 
   public typealias Module = WeeksPeriodGoalCreationFeature
   public typealias Dependencies = Module.Dependencies
@@ -28,8 +28,15 @@ final class WeeksPeriodGoalCreationRouter: TimePickerPresenting {
   }
 
   private func bindRouting() {
-    // Currently no navigation destinations for this feature
-    // Time picker is presented modally using the protocol
+    viewController?.present(
+      item: $store.scope(
+        state: \.destination?.timePicker,
+        action: \.destination.timePicker
+      )
+    ) { timePickerStore in
+      let timePickerVC = TimePickerVC(store: timePickerStore)
+      return UINavigationController(rootViewController: timePickerVC)
+    }
   }
 
 }

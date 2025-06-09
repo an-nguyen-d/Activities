@@ -1,18 +1,11 @@
 import UIKit
-import XCTestDynamicOverlay
+import ComposableArchitecture
 
 public final class TimePickerVC: UIViewController {
   
-  // MARK: - Public Properties
+  // MARK: - Properties
   
-  public var initialTimeInSeconds: Double = 0 {
-    didSet { updatePickersFromSeconds() }
-  }
-  
-  // MARK: - Completion Handlers
-  
-  public var onTimeSelected: (Double) -> Void = { _ in unimplemented("onTimeSelected") }
-  public var onCancel: () -> Void = { unimplemented("onCancel") }
+  private let store: StoreOf<TimePickerFeature>
   
   // MARK: - Private Properties
   
@@ -34,6 +27,17 @@ public final class TimePickerVC: UIViewController {
   private let cancelButton = UIButton(type: .system)
   private let doneButton = UIButton(type: .system)
   
+  // MARK: - Initialization
+  
+  public init(store: StoreOf<TimePickerFeature>) {
+    self.store = store
+    super.init(nibName: nil, bundle: nil)
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
   // MARK: - Lifecycle
   
   public override func viewDidLoad() {
@@ -41,7 +45,7 @@ public final class TimePickerVC: UIViewController {
     setupUI()
     setupConstraints()
     setupActions()
-    updatePickersFromSeconds()
+    updatePickersFromState()
   }
   
   // MARK: - Setup
@@ -163,23 +167,11 @@ public final class TimePickerVC: UIViewController {
   
   // MARK: - Private Methods
   
-  private func updatePickersFromSeconds() {
-    let totalSeconds = Int(initialTimeInSeconds)
-    let hours = totalSeconds / 3600
-    let minutes = (totalSeconds % 3600) / 60
-    let seconds = totalSeconds % 60
-    
-    hoursPicker.selectRow(hours, inComponent: 0, animated: false)
-    minutesPicker.selectRow(minutes, inComponent: 0, animated: false)
-    secondsPicker.selectRow(seconds, inComponent: 0, animated: false)
-  }
-  
-  private func getCurrentTimeInSeconds() -> Double {
-    let hours = hoursPicker.selectedRow(inComponent: 0)
-    let minutes = minutesPicker.selectedRow(inComponent: 0)
-    let seconds = secondsPicker.selectedRow(inComponent: 0)
-    
-    return Double(hours * 3600 + minutes * 60 + seconds)
+  private func updatePickersFromState() {
+    let state = store.state
+    hoursPicker.selectRow(state.hours, inComponent: 0, animated: false)
+    minutesPicker.selectRow(state.minutes, inComponent: 0, animated: false)
+    secondsPicker.selectRow(state.seconds, inComponent: 0, animated: false)
   }
   
   // MARK: - Actions
@@ -189,12 +181,11 @@ public final class TimePickerVC: UIViewController {
   }
   
   @objc private func cancelTapped() {
-    onCancel()
+    store.send(.cancelButtonTapped)
   }
   
   @objc private func doneTapped() {
-    let timeInSeconds = getCurrentTimeInSeconds()
-    onTimeSelected(timeInSeconds)
+    store.send(.saveButtonTapped)
   }
 }
 
@@ -224,6 +215,19 @@ extension TimePickerVC: UIPickerViewDelegate {
     case minutesPicker: return String(format: "%02d", minutesData[row])
     case secondsPicker: return String(format: "%02d", secondsData[row])
     default: return nil
+    }
+  }
+  
+  public func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+    switch pickerView {
+    case hoursPicker:
+      store.send(.hoursChanged(row))
+    case minutesPicker:
+      store.send(.minutesChanged(row))
+    case secondsPicker:
+      store.send(.secondsChanged(row))
+    default:
+      break
     }
   }
 }

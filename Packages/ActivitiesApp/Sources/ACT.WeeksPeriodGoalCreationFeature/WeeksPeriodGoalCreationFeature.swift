@@ -3,9 +3,27 @@ import ComposableArchitecture
 import ElixirShared
 import ACT_SharedModels
 import ACT_DatabaseClient
+import ACT_SharedUI
 
 @Reducer
 public struct WeeksPeriodGoalCreationFeature {
+
+  @Reducer
+  public struct Destination {
+    public enum State: Equatable {
+      case timePicker(TimePickerFeature.State)
+    }
+    
+    public enum Action: Equatable {
+      case timePicker(TimePickerFeature.Action)
+    }
+    
+    public var body: some Reducer<State, Action> {
+      Scope(state: \.timePicker, action: \.timePicker) {
+        TimePickerFeature()
+      }
+    }
+  }
 
   public typealias Dependencies = Any
 
@@ -22,6 +40,8 @@ public struct WeeksPeriodGoalCreationFeature {
     public var targetValueString: String = "" // For better float input UX
     public var successCriteria: GoalSuccessCriteria?
     public var sessionUnit: ActivityModel.SessionUnit
+    
+    @Presents public var destination: Destination.State?
     
     public var isValid: Bool {
       guard let value = targetValue, let criteria = successCriteria else {
@@ -73,11 +93,15 @@ public struct WeeksPeriodGoalCreationFeature {
     case view(ViewAction)
     case _internal(InternalAction)
     case delegate(DelegateAction)
+    case destination(PresentationAction<Destination.Action>)
   }
 
   public var body: some Reducer<State, Action> {
     Reduce { state, action in
       core(into: &state, action: action)
+    }
+    .ifLet(\.$destination, action: \.destination) {
+      Destination()
     }
   }
 
@@ -90,6 +114,18 @@ public struct WeeksPeriodGoalCreationFeature {
       return coreInternal(into: &state, action: action)
 
     case .delegate:
+      return .none
+      
+    case let .destination(.presented(.timePicker(.delegate(.timeSaved(seconds))))):
+      state.targetValue = seconds
+      state.destination = nil
+      return .none
+      
+    case .destination(.presented(.timePicker(.cancelButtonTapped))):
+      state.destination = nil
+      return .none
+      
+    case .destination:
       return .none
     }
   }
@@ -153,7 +189,9 @@ public struct WeeksPeriodGoalCreationFeature {
       return .none
       
     case .timeEditTapped:
-      // TODO: Handle time picker presentation in the view layer
+      state.destination = .timePicker(TimePickerFeature.State(
+        initialTimeInSeconds: state.targetValue ?? 0
+      ))
       return .none
     }
   }

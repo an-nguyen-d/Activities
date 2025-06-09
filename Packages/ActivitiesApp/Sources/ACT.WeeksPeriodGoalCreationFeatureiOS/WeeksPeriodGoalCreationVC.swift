@@ -178,13 +178,7 @@ public final class WeeksPeriodGoalCreationVC: BaseViewController {
       // Only present time picker if we're in time mode
       guard case .seconds = self.viewStore.sessionUnit else { return }
       
-      self.router?.presentTimePicker(
-        from: self,
-        initialTimeInSeconds: self.viewStore.targetValue ?? 0,
-        onTimeSelected: { timeInSeconds in
-          self.viewStore.send(.targetValueChanged(timeInSeconds))
-        }
-      )
+      self.viewStore.send(.timeEditTapped)
     }
   }
 
