@@ -24,27 +24,6 @@ public struct WeeksPeriodActivityGoalModel {
     self.target = target
   }
 
-  // Convenience init
-  public init(
-    id: ActivityGoal.ID,
-    createDate: Date,
-    effectiveCalendarDate: CalendarDate,
-    goalID: ActivityGoalTargetModel.ID,
-    goalValue: Double,
-    goalSuccessCriteria: GoalSuccessCriteria
-  ) {
-    assert(effectiveCalendarDate.dayOfWeek() == Global.startingDayOfWeek)
-    self.init(
-      id: id,
-      createDate: createDate,
-      effectiveCalendarDate: effectiveCalendarDate,
-      target: ActivityGoalTargetModel(
-        id: goalID,
-        goalValue: goalValue,
-        goalSuccessCriteria: goalSuccessCriteria
-      )
-    )
-  }
 }
 
 extension WeeksPeriodActivityGoalModel: ActivityGoal.Modelling {

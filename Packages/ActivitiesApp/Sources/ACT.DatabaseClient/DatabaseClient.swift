@@ -8,6 +8,21 @@ public struct DatabaseClient: Sendable {
     case recordNotFound
   }
 
+  public enum CreateActivityGoalTarget {
+    public struct Request: Sendable, Equatable {
+      public let goalValue: Double
+      public let goalSuccessCriteria: GoalSuccessCriteria
+      
+      public init(
+        goalValue: Double,
+        goalSuccessCriteria: GoalSuccessCriteria
+      ) {
+        self.goalValue = goalValue
+        self.goalSuccessCriteria = goalSuccessCriteria
+      }
+    }
+  }
+
   // MARK: - AppState
 
   public enum FetchOrCreateAppState {
@@ -247,14 +262,14 @@ public struct DatabaseClient: Sendable {
       public let createDate: Date
       public let effectiveCalendarDate: CalendarDate
       public let daysInterval: Int
-      public let target: ActivityGoalTargetModel
+      public let target: DatabaseClient.CreateActivityGoalTarget.Request
 
       public init(
         activityId: ActivityModel.ID,
         createDate: Date,
         effectiveCalendarDate: CalendarDate,
         daysInterval: Int,
-        target: ActivityGoalTargetModel
+        target: DatabaseClient.CreateActivityGoalTarget.Request
       ) {
         self.activityId = activityId
         self.createDate = createDate
@@ -273,26 +288,26 @@ public struct DatabaseClient: Sendable {
       public let createDate: Date
       public let effectiveCalendarDate: CalendarDate
       public let weeksInterval: Int
-      public let mondayGoal: ActivityGoalTargetModel?
-      public let tuesdayGoal: ActivityGoalTargetModel?
-      public let wednesdayGoal: ActivityGoalTargetModel?
-      public let thursdayGoal: ActivityGoalTargetModel?
-      public let fridayGoal: ActivityGoalTargetModel?
-      public let saturdayGoal: ActivityGoalTargetModel?
-      public let sundayGoal: ActivityGoalTargetModel?
+      public let mondayGoal: DatabaseClient.CreateActivityGoalTarget.Request?
+      public let tuesdayGoal: DatabaseClient.CreateActivityGoalTarget.Request?
+      public let wednesdayGoal: DatabaseClient.CreateActivityGoalTarget.Request?
+      public let thursdayGoal: DatabaseClient.CreateActivityGoalTarget.Request?
+      public let fridayGoal: DatabaseClient.CreateActivityGoalTarget.Request?
+      public let saturdayGoal: DatabaseClient.CreateActivityGoalTarget.Request?
+      public let sundayGoal: DatabaseClient.CreateActivityGoalTarget.Request?
 
       public init(
         activityId: ActivityModel.ID,
         createDate: Date,
         effectiveCalendarDate: CalendarDate,
         weeksInterval: Int,
-        mondayGoal: ActivityGoalTargetModel?,
-        tuesdayGoal: ActivityGoalTargetModel?,
-        wednesdayGoal: ActivityGoalTargetModel?,
-        thursdayGoal: ActivityGoalTargetModel?,
-        fridayGoal: ActivityGoalTargetModel?,
-        saturdayGoal: ActivityGoalTargetModel?,
-        sundayGoal: ActivityGoalTargetModel?
+        mondayGoal: DatabaseClient.CreateActivityGoalTarget.Request?,
+        tuesdayGoal: DatabaseClient.CreateActivityGoalTarget.Request?,
+        wednesdayGoal: DatabaseClient.CreateActivityGoalTarget.Request?,
+        thursdayGoal: DatabaseClient.CreateActivityGoalTarget.Request?,
+        fridayGoal: DatabaseClient.CreateActivityGoalTarget.Request?,
+        saturdayGoal: DatabaseClient.CreateActivityGoalTarget.Request?,
+        sundayGoal: DatabaseClient.CreateActivityGoalTarget.Request?
       ) {
         self.activityId = activityId
         self.createDate = createDate
@@ -316,13 +331,13 @@ public struct DatabaseClient: Sendable {
       public let activityId: ActivityModel.ID
       public let createDate: Date
       public let effectiveCalendarDate: CalendarDate
-      public let target: ActivityGoalTargetModel
+      public let target: DatabaseClient.CreateActivityGoalTarget.Request
 
       public init(
         activityId: ActivityModel.ID,
         createDate: Date,
         effectiveCalendarDate: CalendarDate,
-        target: ActivityGoalTargetModel
+        target: DatabaseClient.CreateActivityGoalTarget.Request
       ) {
         self.activityId = activityId
         self.createDate = createDate

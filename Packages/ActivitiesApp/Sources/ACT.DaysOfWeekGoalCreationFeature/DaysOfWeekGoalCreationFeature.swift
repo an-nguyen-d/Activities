@@ -61,7 +61,6 @@ public struct DaysOfWeekGoalCreationFeature {
   private func coreView(into state: inout State, action: Action.ViewAction) -> Effect<Action> {
     switch action {
     case .cancelButtonTapped:
-      print("YOG!!!")
       return .send(.delegate(.dismissed))
 
     case .saveButtonTapped:

@@ -1,5 +1,5 @@
 {
-  "originHash" : "c505bd27275b87fa3924b11ca731c024a3410e40c76710ec161ad9fcb72381ca",
+  "originHash" : "71d7bf051719406aaaa96adc199c5fd144fe329eaba4333fee6f5255f90edbf4",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "5928286acce13def418ec36d05a001a9641086f2",
         "version" : "1.0.3"
+      }
+    },
+    {
+      "identity" : "elixirshared",
+      "kind" : "localSourceControl",
+      "location" : "/Users/annguyen/Documents/2. Areas/Xcode Projects/Genesis/Packages/ElixirShared",
+      "state" : {
+        "branch" : "main",
+        "revision" : "a7ea352950ae60e8bb80820b59201813e36b08ef"
       }
     },
     {

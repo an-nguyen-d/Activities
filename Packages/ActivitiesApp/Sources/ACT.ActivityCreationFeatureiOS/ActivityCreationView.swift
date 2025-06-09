@@ -1,6 +1,7 @@
 import UIKit
 import ElixirShared
 import ACT_ActivityCreationFeature
+import ACT_SharedModels
 
 final class ActivityCreationView: BaseView {
 
@@ -38,7 +39,7 @@ final class ActivityCreationView: BaseView {
     $0.font = .preferredFont(forTextStyle: .headline)
   }
 
-  let unitSegmentedControl = updateObject(UISegmentedControl(items: ActivityCreationFeature.State.SessionUnitType.allCases.map(\.displayName))) {
+  let unitSegmentedControl = updateObject(UISegmentedControl(items: SessionUnitType.allCases.map(\.displayName))) {
     $0.selectedSegmentIndex = 0 // Default to integer
   }
 

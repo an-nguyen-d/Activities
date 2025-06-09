@@ -133,9 +133,7 @@ extension ActivitiesStreakEvaluationClient {
               }
 
 
-              if !didExecute {
-                print("Streak evaluation already in progress, skipping")
-              }
+              // Skip if evaluation already in progress
 
               continuation.resume()
             } catch {

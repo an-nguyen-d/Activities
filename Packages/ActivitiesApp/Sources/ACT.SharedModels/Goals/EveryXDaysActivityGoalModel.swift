@@ -32,29 +32,6 @@ public struct EveryXDaysActivityGoalModel {
     self.target = target
   }
 
-  // Convenience init for backward compatibility
-  public init(
-    id: ActivityGoal.ID,
-    createDate: Date,
-    effectiveCalendarDate: CalendarDate,
-    daysInterval: Int,
-    goalID: ActivityGoalTargetModel.ID,
-    goalValue: Double,
-    goalSuccessCriteria: GoalSuccessCriteria
-  ) {
-    self.init(
-      id: id,
-      createDate: createDate,
-      effectiveCalendarDate: effectiveCalendarDate,
-      daysInterval: daysInterval,
-      target: ActivityGoalTargetModel(
-        id: goalID,
-        goalValue: goalValue,
-        goalSuccessCriteria: goalSuccessCriteria
-      )
-    )
-  }
-
 }
 
 extension EveryXDaysActivityGoalModel: ActivityGoal.Modelling {

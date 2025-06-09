@@ -11,7 +11,7 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-01"),
       daysInterval: 1,
-      target: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)
     )
 
     // Test multiple consecutive days
@@ -32,7 +32,7 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-01"),
       daysInterval: 2,
-      target: ActivityGoalTargetModel(id: 1, goalValue: 45, goalSuccessCriteria: .exactly)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 45, goalSuccessCriteria: .exactly)
     )
 
     // Day 0 (Jan 1) - has target
@@ -53,7 +53,7 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-01"),
       daysInterval: 3,
-      target: ActivityGoalTargetModel(id: 1, goalValue: 60, goalSuccessCriteria: .lessThan)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 60, goalSuccessCriteria: .lessThan)
     )
 
     // Pattern: target on days 0, 3, 6, 9...
@@ -72,7 +72,7 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-01"),
       daysInterval: 1,
-      target: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)
     )
 
     // When evaluationCalendarDate == currentCalendarDate, should return false (can't evaluate today)
@@ -96,7 +96,7 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // A Monday
       weeksInterval: 1,
-      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)!,
+      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast),
       tuesdayGoal: nil,
       wednesdayGoal: nil,
       thursdayGoal: nil,
@@ -124,11 +124,11 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday
       weeksInterval: 1,
-      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)!,
+      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast),
       tuesdayGoal: nil,
-      wednesdayGoal: ActivityGoalTargetModel(id: 2, goalValue: 45, goalSuccessCriteria: .exactly)!,
+      wednesdayGoal: ActivityGoalTargetModel(id: 2, goalValue: 45, goalSuccessCriteria: .exactly),
       thursdayGoal: nil,
-      fridayGoal: ActivityGoalTargetModel(id: 3, goalValue: 60, goalSuccessCriteria: .lessThan)!,
+      fridayGoal: ActivityGoalTargetModel(id: 3, goalValue: 60, goalSuccessCriteria: .lessThan),
       saturdayGoal: nil,
       sundayGoal: nil
     )
@@ -159,7 +159,7 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday
       weeksInterval: 2,
-      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)!,
+      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast),
       tuesdayGoal: nil,
       wednesdayGoal: nil,
       thursdayGoal: nil,
@@ -196,7 +196,7 @@ final class ActivityGoalModelTests: XCTestCase {
       thursdayGoal: nil,
       fridayGoal: nil,
       saturdayGoal: nil,
-      sundayGoal: ActivityGoalTargetModel(id: 1, goalValue: 90, goalSuccessCriteria: .atLeast)!
+      sundayGoal: ActivityGoalTargetModel(id: 1, goalValue: 90, goalSuccessCriteria: .atLeast)
     )
 
     // First Sunday (effective date)
@@ -215,7 +215,7 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"),
       weeksInterval: 1,
-      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)!,
+      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast),
       tuesdayGoal: nil,
       wednesdayGoal: nil,
       thursdayGoal: nil,
@@ -244,7 +244,7 @@ final class ActivityGoalModelTests: XCTestCase {
       id: .init(rawValue: 1),
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
     )
 
     // Every day returns the same target (accumulation goal)
@@ -270,7 +270,7 @@ final class ActivityGoalModelTests: XCTestCase {
       id: .init(rawValue: 1),
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
     )
     
     // Evaluating Monday, current date is also Monday - can't evaluate same day
@@ -297,7 +297,7 @@ final class ActivityGoalModelTests: XCTestCase {
       id: .init(rawValue: 1),
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
     )
     
     // Evaluating Sunday when current date is next Monday - period complete, can evaluate
@@ -330,7 +330,7 @@ final class ActivityGoalModelTests: XCTestCase {
       id: .init(rawValue: 1),
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
     )
     
     // Week 1 Sunday: Can evaluate when current date is in week 2
@@ -363,7 +363,7 @@ final class ActivityGoalModelTests: XCTestCase {
       id: .init(rawValue: 1),
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
     )
     
     // Period 0: Jan 6-12 (Mon-Sun)
@@ -408,7 +408,7 @@ final class ActivityGoalModelTests: XCTestCase {
       id: .init(rawValue: 1),
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
     )
     
     // Check each day of the week - only Sunday should evaluate
@@ -448,7 +448,7 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-01"),
       daysInterval: 3,
-      target: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)
     )
 
     // Test various dates - should always return single day
@@ -477,11 +477,11 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-01"),
       weeksInterval: 1,
-      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)!,
+      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast),
       tuesdayGoal: nil,
-      wednesdayGoal: ActivityGoalTargetModel(id: 2, goalValue: 45, goalSuccessCriteria: .exactly)!,
+      wednesdayGoal: ActivityGoalTargetModel(id: 2, goalValue: 45, goalSuccessCriteria: .exactly),
       thursdayGoal: nil,
-      fridayGoal: ActivityGoalTargetModel(id: 3, goalValue: 60, goalSuccessCriteria: .lessThan)!,
+      fridayGoal: ActivityGoalTargetModel(id: 3, goalValue: 60, goalSuccessCriteria: .lessThan),
       saturdayGoal: nil,
       sundayGoal: nil
     )
@@ -521,7 +521,7 @@ final class ActivityGoalModelTests: XCTestCase {
       id: .init(rawValue: 1),
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
     )
 
     // Test Monday - should return Mon-Sun of that week
@@ -564,7 +564,7 @@ final class ActivityGoalModelTests: XCTestCase {
       id: .init(rawValue: 1),
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday of week 1
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
     )
 
     // Week 1: Jan 6-12
@@ -606,7 +606,7 @@ final class ActivityGoalModelTests: XCTestCase {
       id: .init(rawValue: 1),
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-02-03"), // Monday in February
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
     )
 
     // This should trigger the precondition, but in tests we might want to handle it differently
@@ -627,7 +627,7 @@ final class ActivityGoalModelTests: XCTestCase {
       id: .init(rawValue: 1),
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // Monday
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
     )
 
     // Test a date 52 weeks later
@@ -649,7 +649,7 @@ final class ActivityGoalModelTests: XCTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-01"),
       daysInterval: 3,
-      target: ActivityGoalTargetModel(id: 1, goalValue: 60, goalSuccessCriteria: .lessThan)!
+      target: ActivityGoalTargetModel(id: 1, goalValue: 60, goalSuccessCriteria: .lessThan)
     )
 
     // Test 45 days later (15 intervals)

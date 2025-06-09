@@ -74,8 +74,7 @@ final class ActivitiesStreakEvaluationEdgeCaseTests: XCTestCase {
       createDate: effectiveCalendarDate.date(timeZone: timeZone),
       effectiveCalendarDate: effectiveCalendarDate,
       daysInterval: 1,
-      target: .init(
-        id: .init(rawValue: Int64.random(in: 1...10000)),
+      target: DatabaseClient.CreateActivityGoalTarget.Request(
         goalValue: targetMinutes,
         goalSuccessCriteria: .atLeast
       )
@@ -285,8 +284,7 @@ final class ActivitiesStreakEvaluationEdgeCaseTests: XCTestCase {
           activityId: activity.id,
           createDate: CalendarDate("2024-12-06").date(timeZone: timeZone),
           effectiveCalendarDate: CalendarDate("2024-12-02"), // Snaps to Monday
-          target: .init(
-            id: .init(rawValue: Int64.random(in: 1...10000)),
+          target: DatabaseClient.CreateActivityGoalTarget.Request(
             goalValue: 180, // 3 hours per week
             goalSuccessCriteria: .atLeast
           )
@@ -352,20 +350,17 @@ final class ActivitiesStreakEvaluationEdgeCaseTests: XCTestCase {
       createDate: CalendarDate("2024-12-01").date(timeZone: timeZone),
       effectiveCalendarDate: CalendarDate("2024-12-01"),
       weeksInterval: 1,
-      mondayGoal: .init(
-        id: .init(rawValue: 1),
+      mondayGoal: DatabaseClient.CreateActivityGoalTarget.Request(
         goalValue: 45,
         goalSuccessCriteria: .atLeast
       ),
       tuesdayGoal: nil,
-      wednesdayGoal: .init(
-        id: .init(rawValue: 2),
+      wednesdayGoal: DatabaseClient.CreateActivityGoalTarget.Request(
         goalValue: 45,
         goalSuccessCriteria: .atLeast
       ),
       thursdayGoal: nil,
-      fridayGoal: .init(
-        id: .init(rawValue: 3),
+      fridayGoal: DatabaseClient.CreateActivityGoalTarget.Request(
         goalValue: 45,
         goalSuccessCriteria: .atLeast
       ),

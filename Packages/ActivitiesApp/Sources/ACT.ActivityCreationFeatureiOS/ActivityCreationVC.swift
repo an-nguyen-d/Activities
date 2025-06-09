@@ -9,6 +9,7 @@ import ACT_EveryXDaysGoalCreationFeature
 import ACT_EveryXDaysGoalCreationFeatureiOS
 import ACT_WeeksPeriodGoalCreationFeature
 import ACT_WeeksPeriodGoalCreationFeatureiOS
+import ACT_SharedModels
 
 public final class ActivityCreationVC: BaseViewController {
 
@@ -86,7 +87,7 @@ public final class ActivityCreationVC: BaseViewController {
       }
 
       // Update unit selection
-      let units = ActivityCreationFeature.State.SessionUnitType.allCases
+      let units = SessionUnitType.allCases
       let unitIndex = units.firstIndex(of: viewStore.selectedSessionUnit) ?? 0
       if contentView.unitSegmentedControl.selectedSegmentIndex != unitIndex {
         contentView.unitSegmentedControl.selectedSegmentIndex = unitIndex
@@ -150,7 +151,7 @@ public final class ActivityCreationVC: BaseViewController {
 
   @objc private func unitSelectionDidChange() {
     let selectedIndex = contentView.unitSegmentedControl.selectedSegmentIndex
-    let units = ActivityCreationFeature.State.SessionUnitType.allCases
+    let units = SessionUnitType.allCases
     if selectedIndex < units.count {
       viewStore.send(.sessionUnitChanged(units[selectedIndex]))
     }

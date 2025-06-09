@@ -836,7 +836,7 @@ extension DatabaseClient {
     // 3. Insert targets and join records for each day that has a goal
     var daysOfWeekTargets: [(dayOfWeek: Int, target: ActivityGoalTargetRecord)] = []
 
-    let daysAndGoals: [(DayOfWeek, ActivityGoalTargetModel?)] = [
+    let daysAndGoals: [(DayOfWeek, DatabaseClient.CreateActivityGoalTarget.Request?)] = [
       (.sunday, request.sundayGoal),
       (.monday, request.mondayGoal),
       (.tuesday, request.tuesdayGoal),

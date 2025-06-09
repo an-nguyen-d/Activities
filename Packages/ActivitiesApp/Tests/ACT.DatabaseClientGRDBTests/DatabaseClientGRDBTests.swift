@@ -145,7 +145,7 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-01"),
       daysInterval: 2,
-      target: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)
+      target: DatabaseClient.CreateActivityGoalTarget.Request(goalValue: 30, goalSuccessCriteria: .atLeast)
     ))
     
     // Fetch goal on or after effective date
@@ -170,7 +170,7 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-01"),
       daysInterval: 1,
-      target: ActivityGoalTargetModel(id: 1, goalValue: 10, goalSuccessCriteria: .atLeast)
+      target: DatabaseClient.CreateActivityGoalTarget.Request(goalValue: 10, goalSuccessCriteria: .atLeast)
     ))
     
     _ = try await client.createEveryXDaysGoal(.init(
@@ -178,7 +178,7 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-02-01"),
       daysInterval: 2,
-      target: ActivityGoalTargetModel(id: 2, goalValue: 20, goalSuccessCriteria: .exactly)
+      target: DatabaseClient.CreateActivityGoalTarget.Request(goalValue: 20, goalSuccessCriteria: .exactly)
     ))
     
     _ = try await client.createEveryXDaysGoal(.init(
@@ -186,7 +186,7 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-03-01"),
       daysInterval: 3,
-      target: ActivityGoalTargetModel(id: 3, goalValue: 30, goalSuccessCriteria: .lessThan)
+      target: DatabaseClient.CreateActivityGoalTarget.Request(goalValue: 30, goalSuccessCriteria: .lessThan)
     ))
     
     // Query for Feb 15 - should get the Feb 1 goal
@@ -211,7 +211,7 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-02-01"),
       daysInterval: 1,
-      target: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)
+      target: DatabaseClient.CreateActivityGoalTarget.Request(goalValue: 30, goalSuccessCriteria: .atLeast)
     ))
     
     // Query for Jan 15 - before the goal
@@ -232,11 +232,11 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-01"),
       weeksInterval: 1,
-      mondayGoal: ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast),
+      mondayGoal: DatabaseClient.CreateActivityGoalTarget.Request(goalValue: 30, goalSuccessCriteria: .atLeast),
       tuesdayGoal: nil,
-      wednesdayGoal: ActivityGoalTargetModel(id: 2, goalValue: 45, goalSuccessCriteria: .exactly),
+      wednesdayGoal: DatabaseClient.CreateActivityGoalTarget.Request(goalValue: 45, goalSuccessCriteria: .exactly),
       thursdayGoal: nil,
-      fridayGoal: ActivityGoalTargetModel(id: 3, goalValue: 60, goalSuccessCriteria: .lessThan),
+      fridayGoal: DatabaseClient.CreateActivityGoalTarget.Request(goalValue: 60, goalSuccessCriteria: .lessThan),
       saturdayGoal: nil,
       sundayGoal: nil
     ))
@@ -269,7 +269,7 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       activityId: activity.id,
       createDate: Date(),
       effectiveCalendarDate: CalendarDate("2025-01-06"), // A Monday
-      target: ActivityGoalTargetModel(id: 1, goalValue: 150, goalSuccessCriteria: .atLeast)
+      target: DatabaseClient.CreateActivityGoalTarget.Request(goalValue: 150, goalSuccessCriteria: .atLeast)
     ))
     
     // Fetch goal

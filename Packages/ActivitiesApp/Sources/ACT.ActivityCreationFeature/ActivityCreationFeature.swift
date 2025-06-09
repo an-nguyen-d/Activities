@@ -2,6 +2,7 @@ import Foundation
 import ComposableArchitecture
 import ElixirShared
 import ACT_SharedModels
+import ACT_DatabaseClient
 import ACT_DaysOfWeekGoalCreationFeature
 import ACT_EveryXDaysGoalCreationFeature
 import ACT_WeeksPeriodGoalCreationFeature
@@ -26,20 +27,6 @@ public struct ActivityCreationFeature {
     
     @Presents
     public var destination: Destination.State?
-
-    public enum SessionUnitType: Sendable, Equatable, CaseIterable {
-      case integer
-      case floating
-      case time
-
-      public var displayName: String {
-        switch self {
-        case .integer: return "Integer"
-        case .floating: return "Floating"
-        case .time: return "Time"
-        }
-      }
-    }
     
 
     public var goalDescription: String {
@@ -104,7 +91,7 @@ public struct ActivityCreationFeature {
       case cancelButtonTapped
       case saveButtonTapped
       case activityNameChanged(String)
-      case sessionUnitChanged(State.SessionUnitType)
+      case sessionUnitChanged(SessionUnitType)
       case customUnitNameChanged(String)
       case editGoalButtonTapped
       case didSelectAlertAction
@@ -175,7 +162,9 @@ public struct ActivityCreationFeature {
         case .dismissed:
           state.destination = nil
           return .none
-        case .goalCreated:
+        case let .goalCreated(targetRequest):
+          // TODO: Store the target request and create the actual goal when saving the activity
+          state.goal = "Weekly goal: \(targetRequest.goalSuccessCriteria.rawValue) \(Int(targetRequest.goalValue)) per week"
           state.destination = nil
           return .none
         }
@@ -231,7 +220,16 @@ public struct ActivityCreationFeature {
         case .everyXDays:
           state.destination = .everyXDaysGoalCreation(EveryXDaysGoalCreationFeature.State())
         case .weeksPeriod:
-          state.destination = .weeksPeriodGoalCreation(WeeksPeriodGoalCreationFeature.State())
+          let sessionUnit: ActivityModel.SessionUnit
+          switch state.selectedSessionUnit {
+          case .integer:
+            sessionUnit = .integer(state.customUnitName.isEmpty ? "sessions" : state.customUnitName)
+          case .floating:
+            sessionUnit = .floating(state.customUnitName.isEmpty ? "units" : state.customUnitName)
+          case .time:
+            sessionUnit = .seconds
+          }
+          state.destination = .weeksPeriodGoalCreation(WeeksPeriodGoalCreationFeature.State(sessionUnit: sessionUnit))
         }
         return .none
       }

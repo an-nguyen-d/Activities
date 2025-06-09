@@ -17,7 +17,7 @@ let package = Package(
 //    PackageDependency.SwiftLint.packageDependency,
     PackageDependency.ComposableArchitecture.packageDependency,
     PackageDependency.SwiftTagged.packageDependency,
-//    PackageDependency.XCTestDynamicOverlay.packageDependency,
+    PackageDependency.XCTestDynamicOverlay.packageDependency,
 //    PackageDependency.Overture.packageDependency,
 //    PackageDependency.Prelude.packageDependency,
 //    PackageDependency.CombineCocoa.packageDependency,
@@ -100,6 +100,8 @@ enum PackageTarget: String, CaseIterable {
   case GoalEvaluationClient
   case GoalCreationClient
 
+  case Shared
+  
   case SharedModels
 
   case SharedUI
@@ -192,6 +194,7 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .ActivityCreationFeature,
+          .DatabaseClient,
           .DaysOfWeekGoalCreationFeature,
           .DaysOfWeekGoalCreationFeatureiOS,
           .EveryXDaysGoalCreationFeature,
@@ -207,6 +210,7 @@ enum PackageTarget: String, CaseIterable {
     case .DaysOfWeekGoalCreationFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
+          .DatabaseClient,
           .SharedModels
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
@@ -227,6 +231,7 @@ enum PackageTarget: String, CaseIterable {
     case .EveryXDaysGoalCreationFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
+          .DatabaseClient,
           .SharedModels
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
@@ -247,6 +252,7 @@ enum PackageTarget: String, CaseIterable {
     case .WeeksPeriodGoalCreationFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
+          .DatabaseClient,
           .SharedModels
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
@@ -257,7 +263,9 @@ enum PackageTarget: String, CaseIterable {
     case .WeeksPeriodGoalCreationFeatureiOS:
       return createPackageTarget(
         dependencies: createTargetDependencies(
-          .WeeksPeriodGoalCreationFeature
+          .WeeksPeriodGoalCreationFeature,
+          .SharedUI,
+          .Shared
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -324,6 +332,15 @@ enum PackageTarget: String, CaseIterable {
         ]
       )
 
+    case .Shared:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency
+        ]
+      )
+
     case .SharedModels:
       return createPackageTarget(
         dependencies: createTargetDependencies(
@@ -337,10 +354,11 @@ enum PackageTarget: String, CaseIterable {
     case .SharedUI:
       return createPackageTarget(
         dependencies: createTargetDependencies(
-
+          .SharedModels
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
-          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
+          PackageDependency.XCTestDynamicOverlay.Product.xcTestDynamicOverlay.targetDependency
         ],
         resources: [
           .process("Resources")
