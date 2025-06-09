@@ -138,7 +138,7 @@ extension ActivitiesStreakEvaluationClient {
                     }
 
                     // Get the date range where sessions count toward this goal's target
-                    let sessionsDateRange = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: currentCheckCalendarDate)
+                    let sessionsDateRange = goal.getSessionsDateRangeForTarget(onCalendarDate: currentCheckCalendarDate)
 
                     // Fetch sessions total value for the date range
                     let sessionsTotal = try await databaseClient.fetchSessionsTotalValue(.init(

@@ -21,6 +21,7 @@ extension ActivitiesCollection.Cell {
       let activityName: String
       let goalStatusText: String
       let lastCompletedText: String
+      let lastCompletedDate: Date? // Store the actual date for timer updates
       let streakNumber: String
       let streakColor: UIColor
       let progressPercentage: Double // 0.0 to 1.0
@@ -28,6 +29,8 @@ extension ActivitiesCollection.Cell {
       // Source data hash for cache validation (includes calendar date)
       let sourceDataHash: Int
     }
+    
+    var onQuickLogTapped: ((ActivityModel.ID) -> Void)?
 
     let streakVSeparatorView = updateObject(UIView()) {
       $0.backgroundColor = .View.separator
@@ -150,6 +153,8 @@ extension ActivitiesCollection.Cell {
 
     }
 
+    private var currentModelId: ActivityModel.ID?
+    
     func configure(with model: Model) {
       nameLabel.text = model.activityName
       goalStatusLabel.text = model.goalStatusText
@@ -157,6 +162,13 @@ extension ActivitiesCollection.Cell {
       streakCountLabel.text = model.streakNumber
       streakCountLabel.textColor = model.streakColor
       goalProgressView.progress = model.progressPercentage
+      
+      // Store the model ID and set up button handler
+      currentModelId = model.id
+      logQuickActionButton.onTapHandler = { [weak self] in
+        guard let self = self, let activityId = self.currentModelId else { return }
+        self.onQuickLogTapped?(activityId)
+      }
     }
 
   }

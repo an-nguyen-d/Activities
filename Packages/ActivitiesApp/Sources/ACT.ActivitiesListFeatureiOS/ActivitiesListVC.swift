@@ -2,13 +2,14 @@ import UIKit
 import ElixirShared
 import ComposableArchitecture
 import ACT_ActivitiesListFeature
+import ACT_GoalEvaluationClient
 
 public final class ActivitiesListVC: BaseViewController {
 
   // MARK: - Typealiases
 
   public typealias Module = ActivitiesListFeature
-  public typealias Dependencies = Module.Dependencies
+  public typealias Dependencies = Module.Dependencies & HasGoalEvaluationClient
 
   private typealias View = ActivitiesListView
   private typealias Router = ActivitiesListRouter
@@ -60,6 +61,11 @@ public final class ActivitiesListVC: BaseViewController {
       collectionView: contentView.collectionView,
       dependencies: dependencies
     )
+    
+    // Set up quick log handler
+    collectionManager.onQuickLogTapped = { [weak self] activityId in
+      self?.viewStore.send(.quickLogTapped(activityId: activityId))
+    }
 
     setupNavigationBar()
     observeStore()
@@ -69,11 +75,17 @@ public final class ActivitiesListVC: BaseViewController {
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     viewStore.send(.willAppear)
+    
+    // Start timer for updating "last completed" texts
+    collectionManager.startTimer()
   }
   
   public override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     viewStore.send(.willDisappear)
+    
+    // Stop timer to prevent unnecessary updates when not visible
+    collectionManager.stopTimer()
   }
   
   private func setupNavigationBar() {

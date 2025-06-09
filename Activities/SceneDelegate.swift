@@ -19,7 +19,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       // Create your view controller with store
       let destinationVC = ActivitiesListVC(
         store: .init(
-          initialState: ActivitiesListFeature.State(),
+          initialState: ActivitiesListFeature.State(
+            currentCalendarDate: .init(from: dependencies.dateMaker.date())
+          ),
           reducer: {
             return ActivitiesListFeature(dependencies: dependencies)
           }

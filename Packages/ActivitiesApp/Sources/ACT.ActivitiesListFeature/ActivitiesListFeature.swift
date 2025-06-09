@@ -20,11 +20,7 @@ public struct ActivitiesListFeature {
     public init(currentCalendarDate: CalendarDate) {
       self.currentCalendarDate = currentCalendarDate
     }
-    
-    public init() {
-      // Default to today - will be properly set by parent
-      self.currentCalendarDate = CalendarDate("2024-01-01")
-    }
+
   }
   
   private enum CancelID {
@@ -37,6 +33,7 @@ public struct ActivitiesListFeature {
       case willAppear
       case willDisappear
       case addButtonTapped
+      case quickLogTapped(activityId: ActivityModel.ID)
     }
 
     public enum InternalAction: Equatable {
@@ -85,7 +82,9 @@ public struct ActivitiesListFeature {
 
   public typealias Dependencies = 
     ActivityCreationFeature.Dependencies &
-    HasDatabaseClient
+    HasDatabaseClient &
+    HasDateMaker &
+    HasTimeZone
 
   private let dependencies: Dependencies
   private var databaseClient: DatabaseClient { dependencies.databaseClient }
@@ -127,11 +126,10 @@ public struct ActivitiesListFeature {
         do {
           let stream = try await databaseClient.observeActivitiesList(.init())
           for try await activities in stream {
-            print("📊 Received \(activities.count) activities")
             await send(._internal(.activitiesListResponse(activities)))
           }
         } catch {
-          print("❌ Error observing activities: \(error)")
+          assertionFailure("Failed to observe activities: \(error)")
         }
       }
       .cancellable(id: CancelID.activitiesObservation)
@@ -142,6 +140,54 @@ public struct ActivitiesListFeature {
     case .addButtonTapped:
       state.destination = .activityCreation(.init())
       return .none
+      
+    case let .quickLogTapped(activityId: activityId):
+      // Find the activity to determine if it's time-based
+      guard let activityItem = state.activities[id: activityId] else {
+        assertionFailure("Attempted to quick log for non-existent activity: \(activityId)")
+        return .none
+      }
+      
+      let activity = activityItem.activity
+      let value: Double
+      
+      switch activity.sessionUnit {
+      case .seconds:
+        // For time activities, log 1 minute (60 seconds)
+        value = 60
+      case .integer:
+        // For integer activities, log 1
+        value = 1
+      case .floating:
+        // For floating activities, log 1.0
+        value = 1.0
+      }
+      
+      // Quick log value for activity
+      
+      let now = dependencies.dateMaker.date()
+      let calendarDate = CalendarDate(
+        from: now,
+        timeZone: dependencies.timeZone
+      )
+      
+      return .run { [databaseClient] _ in
+        do {
+          _ = try await databaseClient.createSession(
+            .init(
+              activityId: activityId,
+              value: value,
+              createDate: now,
+              completeDate: now,
+              completeCalendarDate: calendarDate
+            )
+          )
+          
+          // Quick log completed successfully
+        } catch {
+          assertionFailure("Failed to quick log: \(error)")
+        }
+      }
     }
   }
 
@@ -151,10 +197,7 @@ public struct ActivitiesListFeature {
     switch action {
     case let .activitiesListResponse(activities):
       state.activities = IdentifiedArray(uniqueElements: activities)
-      print("✅ Updated state with \(activities.count) activities")
-      for activity in activities {
-        print("  - \(activity.activity.activityName): streak \(activity.activity.currentStreakCount), sessions: \(activity.sessions.count)")
-      }
+      // Update state with activities
       return .none
     }
   }

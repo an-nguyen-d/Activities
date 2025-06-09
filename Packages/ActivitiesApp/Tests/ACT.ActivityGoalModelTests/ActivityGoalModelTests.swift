@@ -453,7 +453,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Test various dates - should always return single day
     let date1 = CalendarDate("2025-01-01")
-    let range1 = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: date1)
+    let range1 = goal.getSessionsDateRangeForTarget(onCalendarDate: date1)
     if case .singleDay(let day) = range1 {
       XCTAssertEqual(day, date1)
     } else {
@@ -461,7 +461,7 @@ final class ActivityGoalModelTests: XCTestCase {
     }
 
     let date2 = CalendarDate("2025-01-15")
-    let range2 = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: date2)
+    let range2 = goal.getSessionsDateRangeForTarget(onCalendarDate: date2)
     if case .singleDay(let day) = range2 {
       XCTAssertEqual(day, date2)
     } else {
@@ -488,7 +488,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Test Monday
     let monday = CalendarDate("2025-01-06")
-    let rangeMonday = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: monday)
+    let rangeMonday = goal.getSessionsDateRangeForTarget(onCalendarDate: monday)
     if case .singleDay(let day) = rangeMonday {
       XCTAssertEqual(day, monday)
     } else {
@@ -497,7 +497,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Test Tuesday (skip day)
     let tuesday = CalendarDate("2025-01-07")
-    let rangeTuesday = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: tuesday)
+    let rangeTuesday = goal.getSessionsDateRangeForTarget(onCalendarDate: tuesday)
     if case .singleDay(let day) = rangeTuesday {
       XCTAssertEqual(day, tuesday)
     } else {
@@ -506,7 +506,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Test Wednesday
     let wednesday = CalendarDate("2025-01-08")
-    let rangeWednesday = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: wednesday)
+    let rangeWednesday = goal.getSessionsDateRangeForTarget(onCalendarDate: wednesday)
     if case .singleDay(let day) = rangeWednesday {
       XCTAssertEqual(day, wednesday)
     } else {
@@ -526,7 +526,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Test Monday - should return Mon-Sun of that week
     let monday = CalendarDate("2025-01-06")
-    let rangeMonday = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: monday)
+    let rangeMonday = goal.getSessionsDateRangeForTarget(onCalendarDate: monday)
 
     // Using CalendarDateRange initializer, should get multipleDays
     if case .multipleDays(let start, let end) = rangeMonday {
@@ -538,7 +538,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Test Wednesday - should return same Mon-Sun
     let wednesday = CalendarDate("2025-01-08")
-    let rangeWednesday = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: wednesday)
+    let rangeWednesday = goal.getSessionsDateRangeForTarget(onCalendarDate: wednesday)
 
     if case .multipleDays(let start, let end) = rangeWednesday {
       XCTAssertEqual(start, CalendarDate("2025-01-06")) // Monday
@@ -549,7 +549,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Test Sunday - should return same Mon-Sun
     let sunday = CalendarDate("2025-01-12")
-    let rangeSunday = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: sunday)
+    let rangeSunday = goal.getSessionsDateRangeForTarget(onCalendarDate: sunday)
 
     if case .multipleDays(let start, let end) = rangeSunday {
       XCTAssertEqual(start, CalendarDate("2025-01-06")) // Monday
@@ -569,7 +569,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Week 1: Jan 6-12
     let week1Date = CalendarDate("2025-01-10") // Friday
-    let range1 = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: week1Date)
+    let range1 = goal.getSessionsDateRangeForTarget(onCalendarDate: week1Date)
 
     if case .multipleDays(let start, let end) = range1 {
       XCTAssertEqual(start, CalendarDate("2025-01-06"))
@@ -580,7 +580,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Week 2: Jan 13-19
     let week2Date = CalendarDate("2025-01-15") // Wednesday
-    let range2 = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: week2Date)
+    let range2 = goal.getSessionsDateRangeForTarget(onCalendarDate: week2Date)
 
     if case .multipleDays(let start, let end) = range2 {
       XCTAssertEqual(start, CalendarDate("2025-01-13"))
@@ -591,7 +591,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Week 3: Jan 20-26
     let week3Date = CalendarDate("2025-01-20") // Monday
-    let range3 = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: week3Date)
+    let range3 = goal.getSessionsDateRangeForTarget(onCalendarDate: week3Date)
 
     if case .multipleDays(let start, let end) = range3 {
       XCTAssertEqual(start, CalendarDate("2025-01-20"))
@@ -612,7 +612,7 @@ final class ActivityGoalModelTests: XCTestCase {
     // This should trigger the precondition, but in tests we might want to handle it differently
     // For now, let's test a date on or after the effective date
     let validDate = CalendarDate("2025-02-05") // Wednesday of first week
-    let range = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: validDate)
+    let range = goal.getSessionsDateRangeForTarget(onCalendarDate: validDate)
 
     if case .multipleDays(let start, let end) = range {
       XCTAssertEqual(start, CalendarDate("2025-02-03")) // Monday
@@ -632,7 +632,7 @@ final class ActivityGoalModelTests: XCTestCase {
 
     // Test a date 52 weeks later
     let farFutureDate = CalendarDate("2026-01-07") // Wednesday, 52+ weeks later
-    let range = goal.getSessionsDateRangeForTarget(evaluationCalendarDate: farFutureDate)
+    let range = goal.getSessionsDateRangeForTarget(onCalendarDate: farFutureDate)
 
     if case .multipleDays(let start, let end) = range {
       // Should calculate the correct week boundaries
