@@ -10,6 +10,7 @@ extension DatabaseClient {
     .init(
       fetchOrCreateAppState: { _ in fatalError() },
       updateAppState: { _ in fatalError() },
+      createActivityWithGoal: { _ in fatalError() },
       createActivity: { _ in fatalError() },
       fetchActivity: { _ in fatalError() },
       fetchActivitiesNeedingEvaluation: { _ in fatalError() },

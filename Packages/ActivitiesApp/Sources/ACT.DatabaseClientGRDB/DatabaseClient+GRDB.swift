@@ -4,7 +4,7 @@ import ElixirShared
 import GRDB
 import Foundation
 
-public enum DatabaseConfiguration {
+public enum DatabaseConfiguration: Sendable {
   case inMemory
   case file(path: String)
 }
@@ -20,15 +20,62 @@ private extension DatabaseConfiguration {
   }
 }
 
+private actor DatabaseClientStorage {
+  static let shared = DatabaseClientStorage()
+
+  private var client: DatabaseClient?
+
+  func getOrCreate(
+    dateMaker: DateMaker,
+    timeZone: TimeZone,
+    configuration: DatabaseConfiguration
+  ) -> DatabaseClient {
+    if let existing = client {
+      return existing
+    }
+
+    let new = DatabaseClient.createGRDBValue(
+      dateMaker: dateMaker,
+      timeZone: timeZone,
+      configuration: configuration
+    )
+    client = new
+    return new
+  }
+
+  func reset() {
+    client = nil
+  }
+}
 
 extension DatabaseClient {
-
   public static func grdbValue(
     dateMaker: DateMaker,
     timeZone: TimeZone,
     configuration: DatabaseConfiguration
-  ) throws -> Self {
-    let dbQueue = try DatabaseQueue(path: configuration.dbPath)
+  ) async -> DatabaseClient {
+    await DatabaseClientStorage.shared.getOrCreate(
+      dateMaker: dateMaker,
+      timeZone: timeZone,
+      configuration: configuration
+    )
+  }
+}
+
+extension DatabaseClient {
+
+  internal static func createGRDBValue(
+    dateMaker: DateMaker,
+    timeZone: TimeZone,
+    configuration: DatabaseConfiguration
+  ) -> DatabaseClient {
+
+    let dbQueue: DatabaseQueue
+    do {
+      dbQueue = try DatabaseQueue(path: configuration.dbPath)
+    } catch {
+      fatalError(error.localizedDescription)
+    }
 
     // Run migrations
     var migrator = DatabaseMigrator()
@@ -159,7 +206,11 @@ extension DatabaseClient {
 
 
 
-    try migrator.migrate(dbQueue)
+    do {
+      try migrator.migrate(dbQueue)
+    } catch {
+      assertionFailure(error.localizedDescription)
+    }
 
     return .init(
 
@@ -205,33 +256,28 @@ extension DatabaseClient {
 
       },
 
+      createActivityWithGoal: { request in
+        try await dbQueue.write { db in
+          // Create activity first
+          let activity = try createActivity(db: db, request: request.activity)
+          
+          // Then create the goal
+          switch request.goal {
+          case let .everyXDays(goalRequest):
+            _ = try createEveryXDaysGoal(db: db, request: goalRequest)
+          case let .daysOfWeek(goalRequest):
+            _ = try createDaysOfWeekGoal(db: db, request: goalRequest)
+          case let .weeksPeriod(goalRequest):
+            _ = try createWeeksPeriodGoal(db: db, request: goalRequest)
+          }
+          
+          return activity
+        }
+      },
+
       createActivity: { request in
         try await dbQueue.write { db in
-
-
-          let (sessionUnitType, sessionUnitName): (ActivityRecord.SessionUnitType, String?) = {
-            switch request.sessionUnit {
-            case let .integer(unit):
-              return (.integer, unit)
-            case let .floating(unit):
-              return (.floating, unit)
-            case .seconds:
-              return (.seconds, nil)
-            }
-          }()
-
-          var record = ActivityRecord(
-            id: request.id.rawValue,
-            activityName: request.activityName,
-            sessionUnitType: sessionUnitType,
-            sessionUnitName: sessionUnitName,
-            currentStreakCount: request.currentStreakCount,
-            lastGoalSuccessCheckCalendarDate: request.lastGoalSuccessCheckCalendarDate?.value
-          )
-          try record.insert(db)
-
-          let model = GRDBMapper.MapActivity.toModel(from: record)
-          return model
+          try createActivity(db: db, request: request)
         }
       },
 
@@ -766,6 +812,35 @@ extension DatabaseClient {
         targetRecord: targetRecord
       )
     }
+  }
+
+  private static func createActivity(
+    db: Database,
+    request: CreateActivity.Request
+  ) throws -> CreateActivity.Response {
+    let (sessionUnitType, sessionUnitName): (ActivityRecord.SessionUnitType, String?) = {
+      switch request.sessionUnit {
+      case let .integer(unit):
+        return (.integer, unit)
+      case let .floating(unit):
+        return (.floating, unit)
+      case .seconds:
+        return (.seconds, nil)
+      }
+    }()
+
+    var record = ActivityRecord(
+      id: request.id.rawValue,
+      activityName: request.activityName,
+      sessionUnitType: sessionUnitType,
+      sessionUnitName: sessionUnitName,
+      currentStreakCount: request.currentStreakCount,
+      lastGoalSuccessCheckCalendarDate: request.lastGoalSuccessCheckCalendarDate?.value
+    )
+    try record.insert(db)
+
+    let model = GRDBMapper.MapActivity.toModel(from: record)
+    return model
   }
 
   private static func createWeeksPeriodGoal(

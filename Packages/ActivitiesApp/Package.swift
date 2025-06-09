@@ -106,6 +106,8 @@ enum PackageTarget: String, CaseIterable {
 
   case SharedUI
 
+  case AppDependenciesLive
+
   // Tests
 
   case ActivitiesStreakEvaluationClientTests
@@ -181,6 +183,7 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .SharedModels,
+          .DatabaseClient,
           .DaysOfWeekGoalCreationFeature,
           .EveryXDaysGoalCreationFeature,
           .WeeksPeriodGoalCreationFeature
@@ -259,7 +262,8 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .DatabaseClient,
-          .SharedModels
+          .SharedModels,
+          .SharedUI
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -368,6 +372,27 @@ enum PackageTarget: String, CaseIterable {
         ],
         resources: [
           .process("Resources")
+        ]
+      )
+
+    case .AppDependenciesLive:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          // All Client targets
+          .ActivitiesStreakEvaluationClient,
+          .DatabaseClient,
+          .DatabaseClientGRDB,
+          .GoalEvaluationClient,
+          .GoalCreationClient,
+          
+          // Shared modules
+          .SharedModels,
+          .Shared,
+          .SharedUI
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
+          PackageDependency.GRDB.Product.GRDB.targetDependency
         ]
       )
 

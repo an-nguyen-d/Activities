@@ -1,7 +1,7 @@
 import Foundation
 import ACT_SharedModels
 
-public struct ActivitiesStreakEvaluationClient {
+public struct ActivitiesStreakEvaluationClient: Sendable {
 
   public enum EvaluateActivitiesStreaksUpToToday {
     public struct Request {

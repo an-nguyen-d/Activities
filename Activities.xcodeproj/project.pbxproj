@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		8EA9E19B2DF1C8B400BDE483 /* ACT.ActivitiesListFeatureiOS in Frameworks */ = {isa = PBXBuildFile; productRef = 8EA9E19A2DF1C8B400BDE483 /* ACT.ActivitiesListFeatureiOS */; };
+		8EF19C362DF7340E008FDF5D /* ACT.AppDependenciesLive in Frameworks */ = {isa = PBXBuildFile; productRef = 8EF19C352DF7340E008FDF5D /* ACT.AppDependenciesLive */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +72,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8EA9E19B2DF1C8B400BDE483 /* ACT.ActivitiesListFeatureiOS in Frameworks */,
+				8EF19C362DF7340E008FDF5D /* ACT.AppDependenciesLive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,6 +151,7 @@
 			name = Activities;
 			packageProductDependencies = (
 				8EA9E19A2DF1C8B400BDE483 /* ACT.ActivitiesListFeatureiOS */,
+				8EF19C352DF7340E008FDF5D /* ACT.AppDependenciesLive */,
 			);
 			productName = Activities;
 			productReference = 8E2217DD2DE8B4950006190D /* Activities.app */;
@@ -314,6 +317,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Activities/Activities.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PAGG8XDJQQ;
@@ -331,6 +335,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.elixirapps.Activities;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -346,6 +351,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Activities/Activities.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PAGG8XDJQQ;
@@ -363,6 +369,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.elixirapps.Activities;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -608,6 +615,10 @@
 		8EA9E19A2DF1C8B400BDE483 /* ACT.ActivitiesListFeatureiOS */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ACT.ActivitiesListFeatureiOS;
+		};
+		8EF19C352DF7340E008FDF5D /* ACT.AppDependenciesLive */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ACT.AppDependenciesLive;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

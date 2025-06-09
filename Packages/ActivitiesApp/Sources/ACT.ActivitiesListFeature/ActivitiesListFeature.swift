@@ -67,8 +67,7 @@ public struct ActivitiesListFeature {
 
   // MARK: - Dependencies
 
-  public typealias Dependencies =
-  Any
+  public typealias Dependencies = ActivityCreationFeature.Dependencies
 
   private let dependencies: Dependencies
 
@@ -133,8 +132,7 @@ public struct ActivitiesListFeature {
         switch action {
         case .delegate(let delegateAction):
           switch delegateAction {
-          case .activityCreated(let activity):
-            // TODO: Handle activity created
+          case .dismissed:
             state.destination = nil
             return .none
           }

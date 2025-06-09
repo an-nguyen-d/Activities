@@ -2,10 +2,7 @@ import UIKit
 import ComposableArchitecture
 import ACT_ActivitiesListFeature
 import ACT_ActivitiesListFeatureiOS
-
-struct AppDependencies {
-
-}
+import ACT_AppDependenciesLive
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   var window: UIWindow?
@@ -16,27 +13,29 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // Create the window
     window = UIWindow(windowScene: windowScene)
 
-    let dependencies = AppDependencies()
+    Task {
+      let dependencies = await AppDependenciesLive()
 
-    // Create your view controller with store
-    let destinationVC = ActivitiesListVC(
-      store: .init(
-        initialState: ActivitiesListFeature.State(),
-        reducer: {
-          return ActivitiesListFeature(dependencies: dependencies)
-        }
-      ),
-      dependencies: dependencies
-    )
-    
-    // Option 1: Set directly as root
-//    window?.rootViewController = destinationVC
-    
-    // Option 2: Wrap in navigation controller (recommended)
-     let navController = UINavigationController(rootViewController: destinationVC)
-     window?.rootViewController = navController
-    
-    // Make window visible
-    window?.makeKeyAndVisible()
+      // Create your view controller with store
+      let destinationVC = ActivitiesListVC(
+        store: .init(
+          initialState: ActivitiesListFeature.State(),
+          reducer: {
+            return ActivitiesListFeature(dependencies: dependencies)
+          }
+        ),
+        dependencies: dependencies
+      )
+
+      // Option 1: Set directly as root
+  //    window?.rootViewController = destinationVC
+
+      // Option 2: Wrap in navigation controller (recommended)
+       let navController = UINavigationController(rootViewController: destinationVC)
+       window?.rootViewController = navController
+
+      // Make window visible
+      window?.makeKeyAndVisible()
+    }
   }
 }

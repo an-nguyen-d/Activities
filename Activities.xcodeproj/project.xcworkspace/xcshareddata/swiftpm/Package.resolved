@@ -1,5 +1,5 @@
 {
-  "originHash" : "90e32b635884a8eff4e522c775c0d9246ae0b248a6a2987bb7cb102a0506d8cb",
+  "originHash" : "a28086329a9e5ca227ffb58d276c65e2525b8742472a9047a1ad8fba3cc4a24e",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -16,7 +16,7 @@
       "location" : "/Users/annguyen/Documents/2. Areas/Xcode Projects/Genesis/Packages/ElixirShared",
       "state" : {
         "branch" : "main",
-        "revision" : "a7ea352950ae60e8bb80820b59201813e36b08ef"
+        "revision" : "cf868260c67b11541b0747afa87132701e0e7c15"
       }
     },
     {

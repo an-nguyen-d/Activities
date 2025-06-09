@@ -103,10 +103,10 @@ public final class ActivityCreationVC: BaseViewController {
       contentView.updateCustomUnitVisibility(isVisible: showCustomUnit)
 
       // Update goal description
-      contentView.updateGoalDescription(viewStore.goalDescription)
+      contentView.updateGoalDescription(viewStore.goalDescription ?? "No goal")
 
-      // Update save button state
-      navigationItem.rightBarButtonItem?.isEnabled = viewStore.isValid
+      // Update save button state  
+      navigationItem.rightBarButtonItem?.isEnabled = viewStore.isValid && viewStore.pendingGoal != nil
 
     }
   }

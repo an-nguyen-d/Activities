@@ -93,6 +93,7 @@ public final class ActivitiesListVC: BaseViewController {
 
 import SwiftUI
 
+/*
 struct VC_Preview: PreviewProvider {
 
   struct Dependencies {
@@ -120,3 +121,4 @@ struct VC_Preview: PreviewProvider {
 
   }
 }
+*/

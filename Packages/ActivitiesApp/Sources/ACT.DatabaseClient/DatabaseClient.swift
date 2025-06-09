@@ -50,6 +50,29 @@ public struct DatabaseClient: Sendable {
 
   // MARK: - Activity
 
+  public enum CreateActivityWithGoal {
+    public enum GoalRequest: Sendable {
+      case everyXDays(CreateEveryXDaysGoal.Request)
+      case daysOfWeek(CreateDaysOfWeekGoal.Request)
+      case weeksPeriod(CreateWeeksPeriodGoal.Request)
+    }
+    
+    public struct Request: Sendable {
+      public let activity: CreateActivity.Request
+      public let goal: GoalRequest
+      
+      public init(
+        activity: CreateActivity.Request,
+        goal: GoalRequest
+      ) {
+        self.activity = activity
+        self.goal = goal
+      }
+    }
+    public typealias Response = ActivityModel
+  }
+  public var createActivityWithGoal: @Sendable (CreateActivityWithGoal.Request) async throws -> CreateActivityWithGoal.Response
+
   public enum CreateActivity {
     public struct Request: Sendable {
       public let id: ActivityModel.ID
@@ -431,6 +454,7 @@ public struct DatabaseClient: Sendable {
     fetchOrCreateAppState: @escaping @Sendable (FetchOrCreateAppState.Request) async throws -> FetchOrCreateAppState.Response,
     updateAppState: @Sendable @escaping (UpdateAppState.Request) async throws -> UpdateAppState.Response,
 
+    createActivityWithGoal: @Sendable @escaping (CreateActivityWithGoal.Request) async throws -> CreateActivityWithGoal.Response,
     createActivity: @Sendable @escaping (CreateActivity.Request) async throws -> CreateActivity.Response,
     fetchActivity: @Sendable @escaping (FetchActivity.Request) async throws -> FetchActivity.Response,
     fetchActivitiesNeedingEvaluation: @Sendable @escaping (FetchActivitiesNeedingEvaluation.Request) async throws -> FetchActivitiesNeedingEvaluation.Response,
@@ -459,6 +483,7 @@ public struct DatabaseClient: Sendable {
     self.fetchOrCreateAppState = fetchOrCreateAppState
     self.updateAppState = updateAppState
 
+    self.createActivityWithGoal = createActivityWithGoal
     self.createActivity = createActivity
     self.fetchActivity = fetchActivity
     self.fetchActivitiesNeedingEvaluation = fetchActivitiesNeedingEvaluation
