@@ -20,6 +20,7 @@ public final class ActivitiesListVC: BaseViewController {
   private let contentView = View()
   private var router: Router!
   private var viewStore: Store<State, ViewAction>
+  private let dependencies: Dependencies
 
   private var collectionManager: ActivitiesCollection.Manager!
 
@@ -33,6 +34,7 @@ public final class ActivitiesListVC: BaseViewController {
       state: \.self,
       action: \.view
     )
+    self.dependencies = dependencies
     super.init()
     self.router = Router(
       viewController: self,
@@ -55,12 +57,23 @@ public final class ActivitiesListVC: BaseViewController {
     super.viewDidLoad()
 
     collectionManager = .init(
-      collectionView: contentView.collectionView
+      collectionView: contentView.collectionView,
+      dependencies: dependencies
     )
 
     setupNavigationBar()
     observeStore()
     bindView()
+  }
+  
+  public override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    viewStore.send(.willAppear)
+  }
+  
+  public override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    viewStore.send(.willDisappear)
   }
   
   private func setupNavigationBar() {
@@ -77,7 +90,14 @@ public final class ActivitiesListVC: BaseViewController {
     observe { [weak self] in
       guard let self else { return }
 
-      // Observe viewStore to update view
+      // Update collection view with activities
+      let activities = self.viewStore.activities
+      let currentCalendarDate = self.viewStore.currentCalendarDate
+      
+      self.collectionManager.updateActivities(
+        activities,
+        currentCalendarDate: currentCalendarDate
+      )
     }
   }
 

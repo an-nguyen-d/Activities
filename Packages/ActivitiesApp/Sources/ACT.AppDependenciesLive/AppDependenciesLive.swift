@@ -59,7 +59,7 @@ HasTimeZone
     self.goalEvaluationClient = .liveValue()
     self.goalCreationClient = .liveValue()
     
-    self.databaseClient = await .grdbValue(
+    self.databaseClient = .grdbValue(
       dateMaker: self.dateMaker,
       timeZone: self.timeZone,
       configuration: .file(
@@ -67,7 +67,7 @@ HasTimeZone
       )
     )
     
-    self.activitiesStreakEvaluationClient = .init(
+    self.activitiesStreakEvaluationClient = await .liveValue(
       dateMaker: self.dateMaker,
       timeZone: self.timeZone,
       databaseClient: self.databaseClient,
@@ -101,6 +101,7 @@ extension AppDependenciesLive {
       
       // Return iCloud database path
       let databaseURL = databaseDirectory.appendingPathComponent("activities.sqlite")
+      checkiCloudSyncStatus(for: databaseURL)
       print("🔵 Using iCloud database at: \(databaseURL.path)")
       return databaseURL.path
     } else {
@@ -115,7 +116,28 @@ extension AppDependenciesLive {
       return localDatabasePath().path
     }
   }
-  
+
+  private static func checkiCloudSyncStatus(for url: URL) {
+      do {
+          let resourceValues = try url.resourceValues(forKeys: [
+//              .ubiquitousItemIsDownloadedKey,
+              .ubiquitousItemIsDownloadingKey,
+              .ubiquitousItemIsUploadedKey,
+              .ubiquitousItemIsUploadingKey,
+              .ubiquitousItemDownloadingStatusKey
+          ])
+
+          print("📊 iCloud Status for \(url.lastPathComponent):")
+//          print("  Downloaded: \(resourceValues.ubiquitousItemIsDownloaded ?? false)")
+          print("  Downloading: \(resourceValues.ubiquitousItemIsDownloading ?? false)")
+          print("  Uploaded: \(resourceValues.ubiquitousItemIsUploaded ?? false)")
+          print("  Uploading: \(resourceValues.ubiquitousItemIsUploading ?? false)")
+          print("  Status: \(resourceValues.ubiquitousItemDownloadingStatus?.rawValue ?? "unknown")")
+      } catch {
+          print("❌ Error checking sync status: \(error)")
+      }
+  }
+
   private static func localDatabasePath() -> URL {
     let fileManager = FileManager.default
     

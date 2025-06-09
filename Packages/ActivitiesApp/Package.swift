@@ -140,10 +140,13 @@ enum PackageTarget: String, CaseIterable {
     case .ActivitiesListFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
-          .ActivityCreationFeature
+          .ActivityCreationFeature,
+          .SharedModels,
+          .DatabaseClient
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
-          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
+          PackageDependency.IdentifiedCollections.Product.identifiedCollections.targetDependency
         ]
       )
 

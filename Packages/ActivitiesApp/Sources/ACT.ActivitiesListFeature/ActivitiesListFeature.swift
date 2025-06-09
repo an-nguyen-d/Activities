@@ -1,30 +1,46 @@
 import ElixirShared
 import ComposableArchitecture
 import Foundation
+import IdentifiedCollections
 import ACT_ActivityCreationFeature
+import ACT_SharedModels
+import ACT_DatabaseClient
 
 @Reducer
 public struct ActivitiesListFeature {
 
   @ObservableState
   public struct State: Equatable {
-
+    public var activities: IdentifiedArrayOf<ActivityListItemModel> = []
+    public var currentCalendarDate: CalendarDate
+    
     @Presents
     public var destination: Destination.State?
 
-    public init() {
-
+    public init(currentCalendarDate: CalendarDate) {
+      self.currentCalendarDate = currentCalendarDate
     }
+    
+    public init() {
+      // Default to today - will be properly set by parent
+      self.currentCalendarDate = CalendarDate("2024-01-01")
+    }
+  }
+  
+  private enum CancelID {
+    case activitiesObservation
   }
 
   public enum Action: TCAFeatureAction, Equatable {
 
     public enum ViewAction: Equatable {
+      case willAppear
+      case willDisappear
       case addButtonTapped
     }
 
     public enum InternalAction: Equatable {
-
+      case activitiesListResponse([ActivityListItemModel])
     }
 
     public enum DelegateAction: Equatable {
@@ -67,9 +83,12 @@ public struct ActivitiesListFeature {
 
   // MARK: - Dependencies
 
-  public typealias Dependencies = ActivityCreationFeature.Dependencies
+  public typealias Dependencies = 
+    ActivityCreationFeature.Dependencies &
+    HasDatabaseClient
 
   private let dependencies: Dependencies
+  private var databaseClient: DatabaseClient { dependencies.databaseClient }
 
   // MARK: - Init
 
@@ -103,6 +122,23 @@ public struct ActivitiesListFeature {
 
   private func coreView(into state: inout State, action: Action.ViewAction) -> Effect<Action> {
     switch action {
+    case .willAppear:
+      return .run { [databaseClient] send in
+        do {
+          let stream = try await databaseClient.observeActivitiesList(.init())
+          for try await activities in stream {
+            print("📊 Received \(activities.count) activities")
+            await send(._internal(.activitiesListResponse(activities)))
+          }
+        } catch {
+          print("❌ Error observing activities: \(error)")
+        }
+      }
+      .cancellable(id: CancelID.activitiesObservation)
+      
+    case .willDisappear:
+      return .cancel(id: CancelID.activitiesObservation)
+      
     case .addButtonTapped:
       state.destination = .activityCreation(.init())
       return .none
@@ -113,10 +149,14 @@ public struct ActivitiesListFeature {
 
   private func coreInternal(into state: inout State, action: Action.InternalAction) -> Effect<Action> {
     switch action {
-
+    case let .activitiesListResponse(activities):
+      state.activities = IdentifiedArray(uniqueElements: activities)
+      print("✅ Updated state with \(activities.count) activities")
+      for activity in activities {
+        print("  - \(activity.activity.activityName): streak \(activity.activity.currentStreakCount), sessions: \(activity.sessions.count)")
+      }
+      return .none
     }
-
-    return .none
   }
 
   // MARK: - DestinationAction

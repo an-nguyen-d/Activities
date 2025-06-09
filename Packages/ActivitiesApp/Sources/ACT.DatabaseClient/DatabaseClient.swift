@@ -238,6 +238,7 @@ public struct DatabaseClient: Sendable {
   }
   public var observeActivity: @Sendable (ObserveActivity.Request) async throws -> ObserveActivity.Response
 
+
   public enum ObserveActivitiesList {
     public struct Request: Sendable {
       public init() {}

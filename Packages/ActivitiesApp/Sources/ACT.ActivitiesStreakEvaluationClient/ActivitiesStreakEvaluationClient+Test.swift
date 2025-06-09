@@ -4,6 +4,52 @@ import ACT_SharedModels
 import ACT_DatabaseClient
 import ACT_GoalEvaluationClient
 
+private actor ActivitiesStreakEvaluationClientStorage {
+  static let shared = ActivitiesStreakEvaluationClientStorage()
+
+  private var client: ActivitiesStreakEvaluationClient?
+
+  func getOrCreate(
+    dateMaker: DateMaker,
+    timeZone: TimeZone,
+    databaseClient: DatabaseClient,
+    goalEvaluationClient: GoalEvaluationClient
+  ) -> ActivitiesStreakEvaluationClient {
+    if let existing = client {
+      return existing
+    }
+
+    let new = ActivitiesStreakEvaluationClient.init(
+      dateMaker: dateMaker,
+      timeZone: timeZone,
+      databaseClient: databaseClient,
+      goalEvaluationClient: goalEvaluationClient
+    )
+    client = new
+    return new
+  }
+
+  func reset() {
+    client = nil
+  }
+}
+
+extension ActivitiesStreakEvaluationClient {
+  public static func liveValue(
+    dateMaker: DateMaker,
+    timeZone: TimeZone,
+    databaseClient: DatabaseClient,
+    goalEvaluationClient: GoalEvaluationClient
+  ) async -> ActivitiesStreakEvaluationClient {
+    await ActivitiesStreakEvaluationClientStorage.shared.getOrCreate(
+      dateMaker: dateMaker,
+      timeZone: timeZone,
+      databaseClient: databaseClient,
+      goalEvaluationClient: goalEvaluationClient
+    )
+  }
+}
+
 extension ActivitiesStreakEvaluationClient {
 
   public static func previewValue() -> Self {
@@ -14,7 +60,7 @@ extension ActivitiesStreakEvaluationClient {
     fatalError()
   }
 
-  public init(
+  init(
     dateMaker: DateMaker,
     timeZone: TimeZone,
     databaseClient: DatabaseClient,

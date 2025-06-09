@@ -1,7 +1,10 @@
 import Foundation
+import Tagged
 
 /// Composite model combining activity + goal + sessions data for list display
-public struct ActivityListItemModel: Sendable, Equatable {
+public struct ActivityListItemModel: Sendable, Equatable, Identifiable {
+  public var id: ActivityModel.ID { activity.id }
+  
   public let activity: ActivityModel
   public let effectiveGoal: any ActivityGoal.Modelling
   public let sessions: [ActivitySessionModel]

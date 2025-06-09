@@ -1,6 +1,7 @@
 import Foundation
 import ElixirShared
 import ACT_SharedUI
+import ACT_SharedModels
 
 enum ActivitiesCollection {
 
@@ -15,8 +16,17 @@ extension ActivitiesCollection.Cell {
 
   final class Activity: BaseCollectionCell {
 
-    struct Model {
-
+    struct Model: Hashable {
+      let id: ActivityModel.ID
+      let activityName: String
+      let goalStatusText: String
+      let lastCompletedText: String
+      let streakNumber: String
+      let streakColor: UIColor
+      let progressPercentage: Double // 0.0 to 1.0
+      
+      // Source data hash for cache validation (includes calendar date)
+      let sourceDataHash: Int
     }
 
     let streakVSeparatorView = updateObject(UIView()) {
@@ -141,7 +151,12 @@ extension ActivitiesCollection.Cell {
     }
 
     func configure(with model: Model) {
-
+      nameLabel.text = model.activityName
+      goalStatusLabel.text = model.goalStatusText
+      lastCompleteLabel.text = model.lastCompletedText
+      streakCountLabel.text = model.streakNumber
+      streakCountLabel.textColor = model.streakColor
+      goalProgressView.progress = model.progressPercentage
     }
 
   }

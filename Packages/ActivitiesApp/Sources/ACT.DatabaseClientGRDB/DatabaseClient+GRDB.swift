@@ -20,51 +20,9 @@ private extension DatabaseConfiguration {
   }
 }
 
-private actor DatabaseClientStorage {
-  static let shared = DatabaseClientStorage()
-
-  private var client: DatabaseClient?
-
-  func getOrCreate(
-    dateMaker: DateMaker,
-    timeZone: TimeZone,
-    configuration: DatabaseConfiguration
-  ) -> DatabaseClient {
-    if let existing = client {
-      return existing
-    }
-
-    let new = DatabaseClient.createGRDBValue(
-      dateMaker: dateMaker,
-      timeZone: timeZone,
-      configuration: configuration
-    )
-    client = new
-    return new
-  }
-
-  func reset() {
-    client = nil
-  }
-}
-
 extension DatabaseClient {
+
   public static func grdbValue(
-    dateMaker: DateMaker,
-    timeZone: TimeZone,
-    configuration: DatabaseConfiguration
-  ) async -> DatabaseClient {
-    await DatabaseClientStorage.shared.getOrCreate(
-      dateMaker: dateMaker,
-      timeZone: timeZone,
-      configuration: configuration
-    )
-  }
-}
-
-extension DatabaseClient {
-
-  internal static func createGRDBValue(
     dateMaker: DateMaker,
     timeZone: TimeZone,
     configuration: DatabaseConfiguration
