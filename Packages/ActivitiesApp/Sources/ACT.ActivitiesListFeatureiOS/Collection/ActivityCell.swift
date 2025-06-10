@@ -2,6 +2,7 @@ import Foundation
 import ElixirShared
 import ACT_SharedUI
 import ACT_SharedModels
+import ACT_GoalEvaluationClient
 
 enum ActivitiesCollection {
 
@@ -16,7 +17,7 @@ extension ActivitiesCollection.Cell {
 
   final class Activity: BaseCollectionCell {
 
-    struct Model: Hashable {
+    struct Model: Hashable, Sendable {
       let id: ActivityModel.ID
       let activityName: String
       let goalStatusText: String
@@ -25,6 +26,7 @@ extension ActivitiesCollection.Cell {
       let streakNumber: String
       let streakColor: UIColor
       let progressPercentage: Double // 0.0 to 1.0
+      let goalStatus: GoalStatus // Store status for sorting
       
       // Source data hash for cache validation (includes calendar date)
       let sourceDataHash: Int

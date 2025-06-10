@@ -62,10 +62,7 @@ extension ActivitiesCollection {
     func startTimer() {
       stopTimer()
       
-      // Only update if we have activities to update
-      guard !currentActivities.isEmpty else { return }
-      
-      lastUpdateTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
+      lastUpdateTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
         Task { @MainActor in
           self?.updateLastCompletedTexts()
         }
@@ -78,6 +75,9 @@ extension ActivitiesCollection {
     }
     
     private func updateLastCompletedTexts() {
+      // Only update if we have activities to update
+      guard !currentActivities.isEmpty else { return }
+
       // Timer fired - update last completed texts
       
       // Check if calendar date has changed
@@ -118,6 +118,7 @@ extension ActivitiesCollection {
               streakNumber: item.streakNumber,
               streakColor: item.streakColor,
               progressPercentage: item.progressPercentage,
+              goalStatus: item.goalStatus,
               sourceDataHash: item.sourceDataHash
             )
             updatedItems.append(updatedModel)
@@ -129,9 +130,44 @@ extension ActivitiesCollection {
       
       // Apply updates if any
       if !updatedItems.isEmpty {
-        // Update items with new last completed text
-        var newSnapshot = currentSnapshot
-        newSnapshot.reloadItems(updatedItems)
+        // We need to replace items, not reload them, because the hash has changed
+        var newSnapshot = NSDiffableDataSourceSnapshot<Section, Cell.Activity.Model>()
+        newSnapshot.appendSections([.main])
+        
+        // Build new array with updated items
+        var newItems: [Cell.Activity.Model] = []
+        for item in currentItems {
+          if let updatedItem = updatedItems.first(where: { $0.id == item.id }) {
+            newItems.append(updatedItem)
+          } else {
+            newItems.append(item)
+          }
+        }
+        
+        // Sort using the goalStatus stored in each model
+        let sortedItems = newItems.sorted { lhs, rhs in
+          // Define status priority (lower number = higher priority)
+          func statusPriority(_ status: GoalStatus) -> Int {
+            switch status {
+            case .incomplete: return 0
+            case .success: return 1
+            case .failure: return 2
+            case .skip: return 3
+            }
+          }
+          
+          let lhsPriority = statusPriority(lhs.goalStatus)
+          let rhsPriority = statusPriority(rhs.goalStatus)
+          
+          if lhsPriority != rhsPriority {
+            return lhsPriority < rhsPriority
+          } else {
+            // Same status, sort alphabetically by activity name
+            return lhs.activityName < rhs.activityName
+          }
+        }
+        
+        newSnapshot.appendItems(sortedItems)
         dataSource.apply(newSnapshot, animatingDifferences: false)
       }
     }
@@ -146,9 +182,6 @@ extension ActivitiesCollection {
       self.currentActivities = activities
       self.currentCalendarDate = currentCalendarDate
       self.lastCalculatedCalendarDate = currentCalendarDate
-      
-      // Cache to store activity ID to goal status for sorting
-      var statusCache: [ActivityModel.ID: GoalStatus] = [:]
       
       // Create view models with caching
       let viewModels = activities.map { activity -> Cell.Activity.Model in
@@ -207,9 +240,6 @@ extension ActivitiesCollection {
           currentCalendarDate: currentCalendarDate
         )
         
-        // Cache the status for sorting later
-        statusCache[activity.id] = progressInfo.status
-        
         let streakColor = determineStreakColor(
           goalStatus: progressInfo.status,
           activity: activity.activity
@@ -239,6 +269,7 @@ extension ActivitiesCollection {
           streakNumber: "\(streakNumber)",
           streakColor: streakColor,
           progressPercentage: progressInfo.percentage,
+          goalStatus: progressInfo.status,
           sourceDataHash: sourceHash
         )
         
@@ -247,7 +278,7 @@ extension ActivitiesCollection {
         return model
       }
       
-      // Sort the view models using the cached status
+      // Sort the view models using the goalStatus stored in each model
       let sortedViewModels = viewModels.sorted { lhs, rhs in
         // Define status priority (lower number = higher priority)
         func statusPriority(_ status: GoalStatus) -> Int {
@@ -259,11 +290,8 @@ extension ActivitiesCollection {
           }
         }
         
-        let lhsStatus = statusCache[lhs.id] ?? .skip
-        let rhsStatus = statusCache[rhs.id] ?? .skip
-        
-        let lhsPriority = statusPriority(lhsStatus)
-        let rhsPriority = statusPriority(rhsStatus)
+        let lhsPriority = statusPriority(lhs.goalStatus)
+        let rhsPriority = statusPriority(rhs.goalStatus)
         
         if lhsPriority != rhsPriority {
           return lhsPriority < rhsPriority
@@ -278,6 +306,11 @@ extension ActivitiesCollection {
       snapshot.appendSections([.main])
       snapshot.appendItems(sortedViewModels)
       dataSource.apply(snapshot, animatingDifferences: true)
+      
+      // Start timer if not already running and we have activities
+      if lastUpdateTimer == nil && !activities.isEmpty {
+        startTimer()
+      }
     }
   }
 }
