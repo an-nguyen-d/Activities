@@ -147,6 +147,9 @@ extension ActivitiesCollection {
       self.currentCalendarDate = currentCalendarDate
       self.lastCalculatedCalendarDate = currentCalendarDate
       
+      // Cache to store activity ID to goal status for sorting
+      var statusCache: [ActivityModel.ID: GoalStatus] = [:]
+      
       // Create view models with caching
       let viewModels = activities.map { activity -> Cell.Activity.Model in
         // Create a stable hash from the activity data and calendar date
@@ -204,6 +207,9 @@ extension ActivitiesCollection {
           currentCalendarDate: currentCalendarDate
         )
         
+        // Cache the status for sorting later
+        statusCache[activity.id] = progressInfo.status
+        
         let streakColor = determineStreakColor(
           goalStatus: progressInfo.status,
           activity: activity.activity
@@ -241,10 +247,36 @@ extension ActivitiesCollection {
         return model
       }
       
+      // Sort the view models using the cached status
+      let sortedViewModels = viewModels.sorted { lhs, rhs in
+        // Define status priority (lower number = higher priority)
+        func statusPriority(_ status: GoalStatus) -> Int {
+          switch status {
+          case .incomplete: return 0
+          case .success: return 1
+          case .failure: return 2
+          case .skip: return 3
+          }
+        }
+        
+        let lhsStatus = statusCache[lhs.id] ?? .skip
+        let rhsStatus = statusCache[rhs.id] ?? .skip
+        
+        let lhsPriority = statusPriority(lhsStatus)
+        let rhsPriority = statusPriority(rhsStatus)
+        
+        if lhsPriority != rhsPriority {
+          return lhsPriority < rhsPriority
+        } else {
+          // Same status, sort alphabetically by activity name
+          return lhs.activityName < rhs.activityName
+        }
+      }
+      
       // Apply to diffable data source
       var snapshot = NSDiffableDataSourceSnapshot<Section, Cell.Activity.Model>()
       snapshot.appendSections([.main])
-      snapshot.appendItems(viewModels)
+      snapshot.appendItems(sortedViewModels)
       dataSource.apply(snapshot, animatingDifferences: true)
     }
   }

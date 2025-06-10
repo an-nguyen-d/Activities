@@ -160,7 +160,8 @@ enum PackageTarget: String, CaseIterable {
           .ActivitiesListFeature,
           .SharedUI,
           .ActivityCreationFeatureiOS,
-          .CreateSessionFeatureiOS
+          .CreateSessionFeatureiOS,
+          .GoalEvaluationClient
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
