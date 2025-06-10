@@ -72,10 +72,10 @@ public class ActivityGeneralTabVC: UIViewController {
     tagsManager = TagsCollection.Manager(collectionView: generalTabView.tagsCollectionView)
     
     // Set up delete handler
-    tagsManager.onDeleteTapped = { [weak self] index in
-      // For now, just log the deletion - we'll implement the actual deletion later
-      print("Delete tag at index: \(index)")
-      // self?.viewStore.send(.view(.deleteTagTapped(tag)))
+    tagsManager.onDeleteTapped = { [weak self] tagID in
+      guard let self = self,
+            let tag = self.viewStore.tags.first(where: { $0.id == tagID }) else { return }
+      self.viewStore.send(.view(.deleteTagTapped(tag)))
     }
   }
   
@@ -88,6 +88,8 @@ public class ActivityGeneralTabVC: UIViewController {
       if let activity = self.viewStore.activity {
         self.generalTabView.configure(activity: activity)
       }
+      
+      self.tagsManager.updateTags(Array(self.viewStore.tags))
     }
   }
   

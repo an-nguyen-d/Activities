@@ -18,6 +18,7 @@ public class TagsListVC: BaseViewController {
   // MARK: - Properties
   
   private let contentView = View()
+  private var router: Router!
   private var viewStore: Store<State, ViewAction>
   private let dependencies: Dependencies
   
@@ -35,6 +36,11 @@ public class TagsListVC: BaseViewController {
     )
     self.dependencies = dependencies
     super.init()
+    self.router = Router(
+      viewController: self,
+      store: store,
+      dependencies: dependencies
+    )
   }
   
   @MainActor required init?(coder: NSCoder) {
@@ -53,8 +59,16 @@ public class TagsListVC: BaseViewController {
       action: #selector(cancelTapped)
     )
     
+    navigationItem.rightBarButtonItem = UIBarButtonItem(
+      barButtonSystemItem: .add,
+      target: self,
+      action: #selector(createButtonTapped)
+    )
+    
     setupUI()
     setupTagsManager()
+    observeStore()
+    bindRouting()
   }
   
   public override func viewWillAppear(_ animated: Bool) {
@@ -85,11 +99,83 @@ public class TagsListVC: BaseViewController {
     tagsManager = TagsCollection.Manager(collectionView: contentView.collectionView)
     
     tagsManager.onTagSelected = { [weak self] tagID in
+      self?.viewStore.send(.tagSelected(tagID))
+    }
+  }
+  
+  private func observeStore() {
+    observe { [weak self] in
+      guard let self = self else { return }
       
+      // Update collection view with real tags
+      let tagModels = self.viewStore.state.tags.map { tag in
+        TagsCollection.Cell.Tag.Model(
+          id: tag.id,
+          name: tag.name,
+          colorHex: tag.associatedColorHex
+        )
+      }
+      
+      self.tagsManager.updateTags(Array(tagModels))
     }
   }
   
   @objc private func cancelTapped() {
     dismiss(animated: true)
+  }
+  
+  @objc private func createButtonTapped() {
+    viewStore.send(.createButtonTapped)
+  }
+  
+  private func bindRouting() {
+    observe { [weak self] in
+      guard let self else { return }
+      
+      switch viewStore.state.destination {
+      case let .alert(alertState):
+        switch alertState {
+        case .createTag:
+          var nameField: UITextField!
+          var colorField: UITextField!
+          
+          router.routeToAlert(
+            from: self,
+            title: "Create Tag",
+            message: "Enter tag details",
+            preferredStyle: .alert,
+            addCancel: true,
+            actions: [
+              .init(
+                title: "Create",
+                action: { [weak self] _ in
+                  let name = nameField.text ?? ""
+                  let colorHex = colorField.text ?? ""
+                  self?.viewStore.send(.alert(.createTag(.confirm(name: name, colorHex: colorHex))))
+                },
+                style: .default
+              )
+            ],
+            textFields: [
+              { textField in
+                nameField = textField
+                textField.placeholder = "Tag Name"
+                textField.autocapitalizationType = .words
+              },
+              { textField in
+                colorField = textField
+                textField.placeholder = "Color Hex (e.g., FF0000)"
+                textField.autocapitalizationType = .allCharacters
+              }
+            ],
+            didSelectAction: { [weak self] in
+              self?.viewStore.send(.didSelectAlertAction)
+            }
+          )
+        }
+      default:
+        break
+      }
+    }
   }
 }

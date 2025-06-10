@@ -428,6 +428,7 @@ enum PackageTarget: String, CaseIterable {
     case .TagsListFeatureiOS:
       return createPackageTarget(
         dependencies: createTargetDependencies(
+          .SharedUI,
           .TagsListFeature,
           .SharedModels
         ) + [

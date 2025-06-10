@@ -14,6 +14,7 @@ extension TagsCollection.Cell {
   final class Tag: BaseCollectionCell {
 
     struct Model: Hashable, Sendable {
+      let id: ActivityTagModel.ID
       let name: String
       let colorHex: String
     }
@@ -89,7 +90,7 @@ extension TagsCollection {
     private var dataSource: UICollectionViewDiffableDataSource<Section, Cell.Tag.Model>!
 
     // Closure to handle delete button taps
-    var onDeleteTapped: ((Int) -> Void)?
+    var onDeleteTapped: ((ActivityTagModel.ID) -> Void)?
 
     init(collectionView: UICollectionView) {
       self.collectionView = collectionView
@@ -98,9 +99,6 @@ extension TagsCollection {
       collectionView.register(Cell.Tag.self)
       setupDataSource()
       setupCollectionView()
-
-      // Load dummy data for testing
-      loadDummyData()
     }
 
     private func setupDataSource() {
@@ -112,7 +110,7 @@ extension TagsCollection {
 
         // Set up delete button handler
         cell.deleteButton.onTapHandler = { [weak self] in
-          self?.onDeleteTapped?(indexPath.item)
+          self?.onDeleteTapped?(model.id)
         }
 
         return cell
@@ -123,30 +121,9 @@ extension TagsCollection {
       collectionView.delegate = self
     }
 
-    private func loadDummyData() {
-      // Dummy data with various name lengths for testing autosizing
-      let dummyTags = [
-        Cell.Tag.Model(name: "Work", colorHex: "e74c3c"),
-        Cell.Tag.Model(name: "Personal Development", colorHex: "3498db"),
-        Cell.Tag.Model(name: "Health", colorHex: "2ecc71"),
-        Cell.Tag.Model(name: "Fitness & Exercise", colorHex: "f39c12"),
-        Cell.Tag.Model(name: "AI", colorHex: "9b59b6"),
-        Cell.Tag.Model(name: "Reading", colorHex: "1abc9c"),
-        Cell.Tag.Model(name: "Meditation & Mindfulness", colorHex: "34495e"),
-        Cell.Tag.Model(name: "Code", colorHex: "e67e22"),
-        Cell.Tag.Model(name: "Family Time Activities", colorHex: "16a085"),
-        Cell.Tag.Model(name: "Art", colorHex: "d35400")
-      ]
-
-      var snapshot = NSDiffableDataSourceSnapshot<Section, Cell.Tag.Model>()
-      snapshot.appendSections([.main])
-      snapshot.appendItems(dummyTags)
-      dataSource.apply(snapshot, animatingDifferences: false)
-    }
-
     func updateTags(_ tags: [ActivityTagModel]) {
       let models = tags.map { tag in
-        Cell.Tag.Model(name: tag.name, colorHex: tag.associatedColorHex)
+        Cell.Tag.Model(id: tag.id, name: tag.name, colorHex: tag.associatedColorHex)
       }
 
       var snapshot = NSDiffableDataSourceSnapshot<Section, Cell.Tag.Model>()

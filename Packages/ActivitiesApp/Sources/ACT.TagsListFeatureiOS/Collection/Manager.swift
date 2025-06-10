@@ -20,7 +20,7 @@ extension TagsCollection {
     private let collectionView: UICollectionView
     private lazy var dataSource: DataSource = createDataSource()
     
-    var onTagSelected: ((String) -> Void)?
+    var onTagSelected: ((ActivityTagModel.ID) -> Void)?
     
     // MARK: - Init
     
@@ -28,7 +28,6 @@ extension TagsCollection {
       self.collectionView = collectionView
       super.init()
       setupCollectionView()
-      loadDummyData()
     }
     
     // MARK: - Setup
@@ -62,25 +61,6 @@ extension TagsCollection {
       snapshot.appendSections([.main])
       snapshot.appendItems(tags, toSection: .main)
       dataSource.apply(snapshot, animatingDifferences: true)
-    }
-    
-    // MARK: - Dummy Data
-    
-    private func loadDummyData() {
-      let dummyTags = [
-        Cell.Tag.Model(id: "1", name: "Work", colorHex: "e74c3c"),
-        Cell.Tag.Model(id: "2", name: "Personal", colorHex: "3498db"),
-        Cell.Tag.Model(id: "3", name: "Health & Fitness", colorHex: "2ecc71"),
-        Cell.Tag.Model(id: "4", name: "Learning", colorHex: "f39c12"),
-        Cell.Tag.Model(id: "5", name: "Side Project", colorHex: "9b59b6"),
-        Cell.Tag.Model(id: "6", name: "Family", colorHex: "1abc9c"),
-        Cell.Tag.Model(id: "7", name: "Finance", colorHex: "34495e"),
-        Cell.Tag.Model(id: "8", name: "Travel", colorHex: "e67e22"),
-        Cell.Tag.Model(id: "9", name: "Hobbies", colorHex: "d35400"),
-        Cell.Tag.Model(id: "10", name: "Social", colorHex: "c0392b")
-      ]
-      
-      updateTags(dummyTags)
     }
   }
 }

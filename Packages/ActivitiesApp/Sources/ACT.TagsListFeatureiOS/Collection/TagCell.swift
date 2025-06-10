@@ -7,7 +7,7 @@ extension TagsCollection.Cell {
   
   struct Tag {
     struct Model: Hashable {
-      let id: String
+      let id: ActivityTagModel.ID
       let name: String
       let colorHex: String
     }

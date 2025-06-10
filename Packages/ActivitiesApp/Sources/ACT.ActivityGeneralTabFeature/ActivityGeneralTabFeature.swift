@@ -2,6 +2,7 @@ import ComposableArchitecture
 import ACT_SharedModels
 import ACT_DatabaseClient
 import ACT_TagsListFeature
+import IdentifiedCollections
 
 @Reducer
 public struct ActivityGeneralTabFeature {
@@ -10,6 +11,7 @@ public struct ActivityGeneralTabFeature {
   public struct State: Equatable {
     public let activityID: ActivityModel.ID
     public var activity: ActivityModel?
+    public var tags: IdentifiedArrayOf<ActivityTagModel> = []
     
     @Presents
     public var destination: Destination.State?
@@ -21,6 +23,7 @@ public struct ActivityGeneralTabFeature {
   
   private enum CancelID {
     case activityObservation
+    case tagsObservation
   }
   
   public enum Action: Equatable {
@@ -36,6 +39,7 @@ public struct ActivityGeneralTabFeature {
     @CasePathable
     public enum InternalAction: Equatable {
       case activityResponse(ActivityModel?)
+      case tagsResponse([ActivityTagModel])
     }
     
     @CasePathable 
@@ -87,20 +91,39 @@ public struct ActivityGeneralTabFeature {
     Reduce { state, action in
       switch action {
       case .view(.willAppear):
-        return .run { [activityID = state.activityID, databaseClient] send in
-          do {
-            let stream = try await databaseClient.observeActivity(.init(id: activityID))
-            for try await activity in stream {
-              await send(._internal(.activityResponse(activity)))
+        return .merge(
+          // Observe activity
+          .run { [activityID = state.activityID, databaseClient] send in
+            do {
+              let stream = try await databaseClient.observeActivity(.init(id: activityID))
+              for try await activity in stream {
+                await send(._internal(.activityResponse(activity)))
+              }
+            } catch {
+              assertionFailure("Failed to observe activity: \(error)")
             }
-          } catch {
-            assertionFailure("Failed to observe activity: \(error)")
           }
-        }
-        .cancellable(id: CancelID.activityObservation)
+          .cancellable(id: CancelID.activityObservation),
+          
+          // Observe tags for this activity
+          .run { [activityID = state.activityID, databaseClient] send in
+            do {
+              let stream = try await databaseClient.observeActivityTags(.init(activityId: activityID))
+              for try await tags in stream {
+                await send(._internal(.tagsResponse(tags)))
+              }
+            } catch {
+              assertionFailure("Failed to observe tags: \(error)")
+            }
+          }
+          .cancellable(id: CancelID.tagsObservation)
+        )
         
       case .view(.willDisappear):
-        return .cancel(id: CancelID.activityObservation)
+        return .concatenate(
+          .cancel(id: CancelID.activityObservation),
+          .cancel(id: CancelID.tagsObservation)
+        )
         
       case .view(.editNameTapped):
         // TODO: Present edit name scene
@@ -110,14 +133,24 @@ public struct ActivityGeneralTabFeature {
         state.destination = .tagsList(
           TagsListFeature.State(
             activityID: state.activityID,
-            tagIDsToHide: Set() // TODO: Will be populated from observed tags
+            tagIDsToHide: Set(state.tags.map(\.id))
           )
         )
         return .none
         
-      case .view(.deleteTagTapped):
-        // TODO: Delete tag from activity
-        return .none
+      case let .view(.deleteTagTapped(tag)):
+        return .run { [databaseClient, activityID = state.activityID] _ in
+          do {
+            try await databaseClient.unlinkActivityTag(
+              .init(
+                activityId: activityID,
+                tagId: tag.id
+              )
+            )
+          } catch {
+            assertionFailure("Failed to unlink tag: \(error)")
+          }
+        }
         
       case ._internal(.activityResponse(let activity)):
         state.activity = activity
@@ -127,6 +160,10 @@ public struct ActivityGeneralTabFeature {
           return .send(.delegate(.dismissScene))
         }
         
+        return .none
+        
+      case let ._internal(.tagsResponse(tags)):
+        state.tags = IdentifiedArray(uniqueElements: tags)
         return .none
         
       case .delegate:
