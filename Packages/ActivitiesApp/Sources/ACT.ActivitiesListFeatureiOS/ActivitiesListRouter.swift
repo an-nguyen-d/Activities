@@ -2,6 +2,7 @@ import UIKit
 import ComposableArchitecture
 import ACT_ActivitiesListFeature
 import ACT_ActivityCreationFeatureiOS
+import ACT_CreateSessionFeatureiOS
 
 @MainActor
 final class ActivitiesListRouter {
@@ -39,6 +40,19 @@ final class ActivitiesListRouter {
         dependencies: dependencies
       )
       return UINavigationController(rootViewController: activityCreationVC)
+    }
+    
+    viewController?.present(
+      item: $store.scope(
+        state: \.destination?.createSession,
+        action: \.destination.createSession
+      )
+    ) { [dependencies] store in
+      let createSessionVC = CreateSessionVC(
+        store: store,
+        dependencies: dependencies
+      )
+      return UINavigationController(rootViewController: createSessionVC)
     }
   }
 

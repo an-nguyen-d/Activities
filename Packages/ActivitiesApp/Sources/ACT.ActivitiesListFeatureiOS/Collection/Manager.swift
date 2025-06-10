@@ -22,8 +22,9 @@ extension ActivitiesCollection {
     private var currentCalendarDate: CalendarDate = CalendarDate("2024-01-01")
     private var lastCalculatedCalendarDate: CalendarDate = CalendarDate("2024-01-01")
     
-    // Closure to handle quick log taps
+    // Closures to handle cell interactions
     var onQuickLogTapped: ((ActivityModel.ID) -> Void)?
+    var onCellTapped: ((ActivityModel.ID) -> Void)?
     
     // Dependencies for view model creation
     typealias Dependencies = 
@@ -207,7 +208,21 @@ extension ActivitiesCollection {
           goalStatus: progressInfo.status,
           activity: activity.activity
         )
-        
+
+        let currentStreakCount = activity.activity.currentStreakCount
+        let streakNumber: Int = {
+          switch progressInfo.status {
+          case .failure:
+            return 0
+          case .skip:
+            return currentStreakCount
+          case .success:
+            return currentStreakCount + 1
+          case .incomplete:
+            return currentStreakCount
+          }
+        }()
+
         // Create new view model with computed data
         let model = Cell.Activity.Model(
           id: activity.id,
@@ -215,7 +230,7 @@ extension ActivitiesCollection {
           goalStatusText: goalStatusText,
           lastCompletedText: lastCompletedText,
           lastCompletedDate: lastCompletedDate,
-          streakNumber: "\(activity.activity.currentStreakCount)",
+          streakNumber: "\(streakNumber)",
           streakColor: streakColor,
           progressPercentage: progressInfo.percentage,
           sourceDataHash: sourceHash
@@ -247,13 +262,6 @@ extension ActivitiesCollection.Manager: UICollectionViewDelegateFlowLayout {
       width: superviewSize.width,
       height: 100
     )
-  }
-}
-
-// MARK: - UICollectionViewDelegate
-extension ActivitiesCollection.Manager: UICollectionViewDelegate {
-  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    // TODO: Handle selection
   }
 }
 
@@ -394,5 +402,20 @@ private extension ActivitiesCollection.Manager {
     case .success:
       return .init(hex: "2ecc71")
     }
+  }
+}
+
+// MARK: - UICollectionViewDelegate
+
+extension ActivitiesCollection.Manager: UICollectionViewDelegate {
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    // Deselect immediately for better UX
+    collectionView.deselectItem(at: indexPath, animated: true)
+    
+    // Get the activity ID from the data source
+    guard let model = dataSource?.itemIdentifier(for: indexPath) else { return }
+    
+    // Call the onCellTapped handler
+    onCellTapped?(model.id)
   }
 }

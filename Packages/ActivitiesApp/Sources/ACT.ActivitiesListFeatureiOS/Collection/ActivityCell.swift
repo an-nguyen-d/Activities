@@ -112,7 +112,7 @@ extension ActivitiesCollection.Cell {
 
       streakVSeparatorView.fillVertically(contentView)
       streakVSeparatorView.anchor(
-        .leading(streakCountLabel.trailingAnchor, constant: 8),
+        .leading(contentView.leadingAnchor, constant: 44),
         .width(1)
       )
 

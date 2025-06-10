@@ -64,7 +64,7 @@ HasTimeZone
       timeZone: self.timeZone,
       configuration: .file(
         path: Self.databasePath()
-      )
+      ) 
     )
     
     self.activitiesStreakEvaluationClient = await .liveValue(

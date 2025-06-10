@@ -91,6 +91,9 @@ enum PackageTarget: String, CaseIterable {
   
   case WeeksPeriodGoalCreationFeature
   case WeeksPeriodGoalCreationFeatureiOS
+  
+  case CreateSessionFeature
+  case CreateSessionFeatureiOS
 
   case ActivitiesStreakEvaluationClient
 
@@ -140,6 +143,7 @@ enum PackageTarget: String, CaseIterable {
     case .ActivitiesListFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
+          .CreateSessionFeature,
           .ActivityCreationFeature,
           .SharedModels,
           .DatabaseClient
@@ -155,7 +159,8 @@ enum PackageTarget: String, CaseIterable {
         dependencies: createTargetDependencies(
           .ActivitiesListFeature,
           .SharedUI,
-          .ActivityCreationFeatureiOS
+          .ActivityCreationFeatureiOS,
+          .CreateSessionFeatureiOS
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -279,6 +284,29 @@ enum PackageTarget: String, CaseIterable {
           .WeeksPeriodGoalCreationFeature,
           .SharedUI,
           .Shared
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .CreateSessionFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .CreateSessionFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .CreateSessionFeature,
+          .SharedUI,
+          .SharedModels
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency

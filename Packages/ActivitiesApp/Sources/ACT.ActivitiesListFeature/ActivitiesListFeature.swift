@@ -3,6 +3,7 @@ import ComposableArchitecture
 import Foundation
 import IdentifiedCollections
 import ACT_ActivityCreationFeature
+import ACT_CreateSessionFeature
 import ACT_SharedModels
 import ACT_DatabaseClient
 
@@ -34,6 +35,7 @@ public struct ActivitiesListFeature {
       case willDisappear
       case addButtonTapped
       case quickLogTapped(activityId: ActivityModel.ID)
+      case activityCellTapped(activityId: ActivityModel.ID)
     }
 
     public enum InternalAction: Equatable {
@@ -57,11 +59,13 @@ public struct ActivitiesListFeature {
     @CasePathable
     public enum State: Equatable {
       case activityCreation(ActivityCreationFeature.State)
+      case createSession(CreateSessionFeature.State)
     }
 
     @CasePathable
     public enum Action: Equatable {
       case activityCreation(ActivityCreationFeature.Action)
+      case createSession(CreateSessionFeature.Action)
     }
 
     let dependencies: Dependencies
@@ -74,6 +78,9 @@ public struct ActivitiesListFeature {
       Scope(state: \.activityCreation, action: \.activityCreation) {
         ActivityCreationFeature(dependencies: dependencies)
       }
+      Scope(state: \.createSession, action: \.createSession) {
+        CreateSessionFeature(dependencies: dependencies)
+      }
     }
 
   }
@@ -82,6 +89,7 @@ public struct ActivitiesListFeature {
 
   public typealias Dependencies = 
     ActivityCreationFeature.Dependencies &
+    CreateSessionFeature.Dependencies &
     HasDatabaseClient &
     HasDateMaker &
     HasTimeZone
@@ -188,6 +196,21 @@ public struct ActivitiesListFeature {
           assertionFailure("Failed to quick log: \(error)")
         }
       }
+      
+    case let .activityCellTapped(activityId: activityId):
+      // Find the activity to get its unit type
+      guard let activityItem = state.activities[id: activityId] else {
+        assertionFailure("Attempted to create session for non-existent activity: \(activityId)")
+        return .none
+      }
+      
+      state.destination = .createSession(
+        CreateSessionFeature.State(
+          activityID: activityId,
+          sessionUnit: activityItem.activity.sessionUnit
+        )
+      )
+      return .none
     }
   }
 
@@ -212,6 +235,18 @@ public struct ActivitiesListFeature {
     case .presented(let action):
       switch action {
       case .activityCreation(let action):
+        switch action {
+        case .delegate(let delegateAction):
+          switch delegateAction {
+          case .dismissed:
+            state.destination = nil
+            return .none
+          }
+        default:
+          return .none
+        }
+        
+      case .createSession(let action):
         switch action {
         case .delegate(let delegateAction):
           switch delegateAction {

@@ -62,9 +62,13 @@ public final class ActivitiesListVC: BaseViewController {
       dependencies: dependencies
     )
     
-    // Set up quick log handler
+    // Set up cell interaction handlers
     collectionManager.onQuickLogTapped = { [weak self] activityId in
       self?.viewStore.send(.quickLogTapped(activityId: activityId))
+    }
+    
+    collectionManager.onCellTapped = { [weak self] activityId in
+      self?.viewStore.send(.activityCellTapped(activityId: activityId))
     }
 
     setupNavigationBar()
