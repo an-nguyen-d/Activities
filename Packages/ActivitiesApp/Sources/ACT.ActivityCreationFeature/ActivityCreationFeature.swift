@@ -179,9 +179,10 @@ public struct ActivityCreationFeature {
           
           // Create description
           let targetCount = targets.compactMap { $0 }.count
-
-          let intervalText = weeksInterval == 1 ? "week" : "\(weeksInterval) weeks"
-          state.goalDescription = "\(targetCount) days per \(intervalText)"
+          state.goalDescription = GoalDescriptions.daysOfWeekSummaryDescription(
+            targetCount: targetCount,
+            weeksInterval: weeksInterval
+          )
           state.destination = nil
           return .none
         }
@@ -196,8 +197,11 @@ public struct ActivityCreationFeature {
           state.pendingGoal = .everyXDays(daysInterval: daysInterval, target: target)
           
           // Create description
-          let intervalText = daysInterval == 1 ? "day" : "\(daysInterval) days"
-          state.goalDescription = "\(target.goalSuccessCriteria.rawValue) \(Int(target.goalValue)) every \(intervalText)"
+          state.goalDescription = GoalDescriptions.everyXDaysDescription(
+            daysInterval: daysInterval,
+            goalValue: target.goalValue,
+            successCriteria: target.goalSuccessCriteria
+          )
           state.destination = nil
           return .none
         }
@@ -211,7 +215,10 @@ public struct ActivityCreationFeature {
           state.pendingGoal = .weeksPeriod(target: targetRequest)
           
           // Create description
-          state.goalDescription = "Weekly goal: \(targetRequest.goalSuccessCriteria.rawValue) \(Int(targetRequest.goalValue)) per week"
+          state.goalDescription = GoalDescriptions.weeksPeriodDescription(
+            goalValue: targetRequest.goalValue,
+            successCriteria: targetRequest.goalSuccessCriteria
+          )
           state.destination = nil
           return .none
         }

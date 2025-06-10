@@ -1,7 +1,7 @@
 import Foundation
 import Tagged
 
-public struct DaysOfWeekActivityGoalModel {
+public struct DaysOfWeekActivityGoalModel: Equatable {
 
   public let id: ActivityGoal.ID
 

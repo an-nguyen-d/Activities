@@ -154,11 +154,13 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       calendarDate: CalendarDate("2025-01-15")
     ))
     
-    let everyXDaysGoal = goal as? EveryXDaysActivityGoalModel
-    XCTAssertNotNil(everyXDaysGoal)
-    XCTAssertEqual(everyXDaysGoal?.daysInterval, 2)
-    XCTAssertEqual(everyXDaysGoal?.target.goalValue, 30)
-    XCTAssertEqual(everyXDaysGoal?.target.goalSuccessCriteria, .atLeast)
+    guard case .everyXDays(let everyXDaysGoal) = goal else {
+      XCTFail("Expected everyXDays goal")
+      return
+    }
+    XCTAssertEqual(everyXDaysGoal.daysInterval, 2)
+    XCTAssertEqual(everyXDaysGoal.target.goalValue, 30)
+    XCTAssertEqual(everyXDaysGoal.target.goalSuccessCriteria, .atLeast)
   }
   
   func test_whenMultipleGoalsExist_returnsMostRecent() async throws {
@@ -195,11 +197,13 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       calendarDate: CalendarDate("2025-02-15")
     ))
     
-    let everyXDaysGoal = goal as? EveryXDaysActivityGoalModel
-    XCTAssertNotNil(everyXDaysGoal)
-    XCTAssertEqual(everyXDaysGoal?.daysInterval, 2)
-    XCTAssertEqual(everyXDaysGoal?.target.goalValue, 20)
-    XCTAssertEqual(everyXDaysGoal?.effectiveCalendarDate.value, "2025-02-01")
+    guard case .everyXDays(let everyXDaysGoal) = goal else {
+      XCTFail("Expected everyXDays goal")
+      return
+    }
+    XCTAssertEqual(everyXDaysGoal.daysInterval, 2)
+    XCTAssertEqual(everyXDaysGoal.target.goalValue, 20)
+    XCTAssertEqual(everyXDaysGoal.effectiveCalendarDate.value, "2025-02-01")
   }
   
   func test_whenQueryingBeforeFirstGoal_returnsNil() async throws {
@@ -247,18 +251,20 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       calendarDate: CalendarDate("2025-01-15")
     ))
     
-    let daysOfWeekGoal = goal as? DaysOfWeekActivityGoalModel
-    XCTAssertNotNil(daysOfWeekGoal)
-    XCTAssertEqual(daysOfWeekGoal?.weeksInterval, 1)
+    guard case .daysOfWeek(let daysOfWeekGoal) = goal else {
+      XCTFail("Expected daysOfWeek goal")
+      return
+    }
+    XCTAssertEqual(daysOfWeekGoal.weeksInterval, 1)
     
     // Check specific days
-    XCTAssertEqual(daysOfWeekGoal?.mondayGoal?.goalValue, 30)
-    XCTAssertEqual(daysOfWeekGoal?.mondayGoal?.goalSuccessCriteria, .atLeast)
-    XCTAssertNil(daysOfWeekGoal?.tuesdayGoal)
-    XCTAssertEqual(daysOfWeekGoal?.wednesdayGoal?.goalValue, 45)
-    XCTAssertEqual(daysOfWeekGoal?.wednesdayGoal?.goalSuccessCriteria, .exactly)
-    XCTAssertEqual(daysOfWeekGoal?.fridayGoal?.goalValue, 60)
-    XCTAssertEqual(daysOfWeekGoal?.fridayGoal?.goalSuccessCriteria, .lessThan)
+    XCTAssertEqual(daysOfWeekGoal.mondayGoal?.goalValue, 30)
+    XCTAssertEqual(daysOfWeekGoal.mondayGoal?.goalSuccessCriteria, .atLeast)
+    XCTAssertNil(daysOfWeekGoal.tuesdayGoal)
+    XCTAssertEqual(daysOfWeekGoal.wednesdayGoal?.goalValue, 45)
+    XCTAssertEqual(daysOfWeekGoal.wednesdayGoal?.goalSuccessCriteria, .exactly)
+    XCTAssertEqual(daysOfWeekGoal.fridayGoal?.goalValue, 60)
+    XCTAssertEqual(daysOfWeekGoal.fridayGoal?.goalSuccessCriteria, .lessThan)
   }
   
   func test_weeksPeriodGoal() async throws {
@@ -278,11 +284,13 @@ final class FetchEffectiveGoalTests: DatabaseClientTestCase {
       calendarDate: CalendarDate("2025-01-20")
     ))
     
-    let weeksPeriodGoal = goal as? WeeksPeriodActivityGoalModel
-    XCTAssertNotNil(weeksPeriodGoal)
-    XCTAssertEqual(weeksPeriodGoal?.target.goalValue, 150)
-    XCTAssertEqual(weeksPeriodGoal?.target.goalSuccessCriteria, .atLeast)
-    XCTAssertEqual(weeksPeriodGoal?.effectiveCalendarDate.value, "2025-01-06")
+    guard case .weeksPeriod(let weeksPeriodGoal) = goal else {
+      XCTFail("Expected weeksPeriod goal")
+      return
+    }
+    XCTAssertEqual(weeksPeriodGoal.target.goalValue, 150)
+    XCTAssertEqual(weeksPeriodGoal.target.goalSuccessCriteria, .atLeast)
+    XCTAssertEqual(weeksPeriodGoal.effectiveCalendarDate.value, "2025-01-06")
   }
 }
 

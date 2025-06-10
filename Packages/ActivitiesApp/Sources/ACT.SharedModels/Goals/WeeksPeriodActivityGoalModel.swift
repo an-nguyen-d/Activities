@@ -10,7 +10,7 @@ import Tagged
 /// - The user can complete this in any pattern: 5x30min, 7x21min, 1x150min, etc.
 /// - All sessions from Monday-Sunday count toward the weekly target
 /// - Success is evaluated only on Sunday when the week is complete
-public struct WeeksPeriodActivityGoalModel {
+public struct WeeksPeriodActivityGoalModel: Equatable {
 
   public let id: ActivityGoal.ID
 

@@ -334,6 +334,10 @@ enum PackageTarget: String, CaseIterable {
     case .ActivityDetailFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
+          .ActivityGeneralTabFeature,
+          .ActivityGoalsTabFeature,
+          .ActivitySessionsTabFeature,
+          .DatabaseClient,
           .SharedModels
         ) + [
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -380,6 +384,7 @@ enum PackageTarget: String, CaseIterable {
     case .ActivityGoalsTabFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
+          .DatabaseClient,
           .SharedModels
         ) + [
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -390,9 +395,11 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .ActivityGoalsTabFeature,
-          .SharedModels
+          .SharedModels,
+          .SharedUI
         ) + [
-          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency
         ]
       )
 

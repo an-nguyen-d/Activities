@@ -267,7 +267,7 @@ public struct DatabaseClient: Sendable {
         self.activityId = activityId
       }
     }
-    public typealias Response = AsyncThrowingStream<[any ActivityGoal.Modelling], Error>
+    public typealias Response = AsyncThrowingStream<[ActivityGoalType], Error>
   }
   public var observeActivityGoals: @Sendable (ObserveActivityGoals.Request) async throws -> ObserveActivityGoals.Response
 
@@ -288,7 +288,7 @@ public struct DatabaseClient: Sendable {
         self.existingGoalIdToDelete = existingGoalIdToDelete
       }
     }
-    public typealias Response = any ActivityGoal.Modelling
+    public typealias Response = ActivityGoalType
   }
   public var createGoalReplacingExisting: @Sendable (CreateGoalReplacingExisting.Request) async throws -> CreateGoalReplacingExisting.Response
 
@@ -394,7 +394,7 @@ public struct DatabaseClient: Sendable {
         self.calendarDate = calendarDate
       }
     }
-    public typealias Response = (any ActivityGoal.Modelling)?
+    public typealias Response = ActivityGoalType?
   }
   /// Fetches the goal that is effective for an activity on a specific date.
   /// Returns the most recent goal where effectiveCalendarDate <= calendarDate.
@@ -425,7 +425,7 @@ public struct DatabaseClient: Sendable {
         self.fetchType = fetchType
       }
     }
-    public typealias Response = (any ActivityGoal.Modelling)?
+    public typealias Response = ActivityGoalType?
   }
   public var fetchActivityGoal: @Sendable (FetchActivityGoal.Request) async throws -> FetchActivityGoal.Response
 

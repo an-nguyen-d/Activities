@@ -60,7 +60,7 @@ public struct ActivityDetailFeature {
     }
     
     Scope(state: \.goalsTab, action: \.goalsTab) {
-      ActivityGoalsTabFeature()
+      ActivityGoalsTabFeature(dependencies: dependencies)
     }
     
     Scope(state: \.sessionsTab, action: \.sessionsTab) {

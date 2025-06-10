@@ -4,6 +4,8 @@ import ACT_ActivityDetailFeature
 import ACT_SharedModels
 import ACT_ActivityGeneralTabFeature
 import ACT_ActivityGeneralTabFeatureiOS
+import ACT_ActivityGoalsTabFeatureiOS
+import ACT_ActivitySessionsTabFeatureiOS
 
 @MainActor
 final class ActivityDetailRouter {
@@ -35,6 +37,34 @@ final class ActivityDetailRouter {
     return generalVC
   }()
 
+  public lazy var goalsVC: ActivityGoalsTabVC = {
+    let goalsStore = store.scope(
+      state: \.goalsTab,
+      action: \.goalsTab
+    )
+    let goalsVC = ActivityGoalsTabVC(store: goalsStore, dependencies: dependencies)
+    goalsVC.tabBarItem = UITabBarItem(
+      title: "Goals",
+      image: UIImage(systemName: "target"),
+      selectedImage: UIImage(systemName: "target")
+    )
+    return goalsVC
+  }()
+
+  public lazy var sessionsVC: ActivitySessionsTabVC = {
+    let sessionsStore = store.scope(
+      state: \.sessionsTab,
+      action: \.sessionsTab
+    )
+    let sessionsVC = ActivitySessionsTabVC(store: sessionsStore)
+    sessionsVC.tabBarItem = UITabBarItem(
+      title: "Sessions",
+      image: UIImage(systemName: "clock"),
+      selectedImage: UIImage(systemName: "clock.fill")
+    )
+    return sessionsVC
+  }()
+
   init(
     viewController: UITabBarController,
     store: StoreOf<Module>,
@@ -47,7 +77,9 @@ final class ActivityDetailRouter {
 
 
     viewController.viewControllers = [
-      generalVC
+      generalVC,
+      goalsVC,
+      sessionsVC
     ]
   }
 

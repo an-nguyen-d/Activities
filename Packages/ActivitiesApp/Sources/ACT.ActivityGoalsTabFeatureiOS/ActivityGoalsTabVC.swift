@@ -2,15 +2,22 @@ import UIKit
 import ComposableArchitecture
 import ACT_ActivityGoalsTabFeature
 import ACT_SharedModels
+import ACT_SharedUI
+import Foundation
 
 public class ActivityGoalsTabVC: UIViewController {
   
   private let store: StoreOf<ActivityGoalsTabFeature>
-  private let viewStore: ViewStoreOf<ActivityGoalsTabFeature>
+  private let goalsTabView = ActivityGoalsTabView()
+  private var goalsManager: GoalsCollection.Manager!
+  private let dependencies: ActivityGoalsTabFeature.Dependencies
   
-  public init(store: StoreOf<ActivityGoalsTabFeature>) {
+  public init(
+    store: StoreOf<ActivityGoalsTabFeature>,
+    dependencies: ActivityGoalsTabFeature.Dependencies
+  ) {
     self.store = store
-    self.viewStore = ViewStore(store, observe: { $0 })
+    self.dependencies = dependencies
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -21,32 +28,63 @@ public class ActivityGoalsTabVC: UIViewController {
   public override func viewDidLoad() {
     super.viewDidLoad()
     
-    // Set blue background for visual testing
-    view.backgroundColor = .systemBlue
+    view.backgroundColor = .black
     
-    // Add a label to show the activity ID
-    let label = UILabel()
-    label.text = "Goals Tab\nActivity ID: \(viewStore.activityID.rawValue)"
-    label.textAlignment = .center
-    label.numberOfLines = 0
-    label.textColor = .white
-    label.font = .systemFont(ofSize: 20, weight: .medium)
-    label.translatesAutoresizingMaskIntoConstraints = false
-    
-    view.addSubview(label)
-    NSLayoutConstraint.activate([
-      label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-      label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-    ])
+    setupUI()
+    setupGoalsManager()
+    bindActions()
+    observeGoals()
   }
   
   public override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    viewStore.send(.view(.willAppear))
+    store.send(.view(.willAppear))
   }
   
   public override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
-    viewStore.send(.view(.willDisappear))
+    store.send(.view(.willDisappear))
+  }
+  
+  // MARK: - Setup
+  
+  private func setupUI() {
+    goalsTabView.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(goalsTabView)
+    
+    NSLayoutConstraint.activate([
+      goalsTabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      goalsTabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      goalsTabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      goalsTabView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+    ])
+  }
+  
+  private func setupGoalsManager() {
+    goalsManager = GoalsCollection.Manager(collectionView: goalsTabView.collectionView)
+  }
+  
+  private func bindActions() {
+    goalsTabView.createGoalButton.onTapHandler = { [weak self] in
+      self?.store.send(.view(.createGoalTapped))
+    }
+  }
+  
+  private func observeGoals() {
+    observe { [weak self] in
+      guard let self = self else { return }
+      
+      let goals = self.store.withState(\.goals)
+      let cellModels = goals.map { goal in
+        GoalsCollection.Cell.Goal.Model(
+          id: goal.id.rawValue.description,
+          effectiveDate: "Effective CalendarDate: \(goal.effectiveCalendarDate.value)",
+          description: GoalDescriptions.description(for: goal),
+          goalType: GoalDescriptions.goalTypeName(for: goal)
+        )
+      }
+      
+      self.goalsManager.updateGoals(cellModels)
+    }
   }
 }
