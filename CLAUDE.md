@@ -142,3 +142,31 @@ git push
 - **Swift 6.1**: Latest Swift version with strict concurrency
 - **Database**: GRDB 7.5.0 for SQLite persistence
 - **Dependencies**: TCA 1.20.2, swift-tagged, ElixirShared (local package)
+
+## Known Database Design Issues
+
+### ActivityGoalTargetRecord Foreign Key Direction (as of Jan 2025)
+
+**Current Issue**: The foreign key relationships between goal tables and ActivityGoalTargetRecord are backwards.
+- Parent tables (EveryXDaysActivityGoalRecord, etc.) reference ActivityGoalTargetRecord with `onDelete: .cascade`
+- This means deleting a target would cascade UP and delete the parent (dangerous!)
+- Deleting a parent leaves orphaned targets
+
+**Current Solution**: Manual cleanup when deleting goals (see `deleteGoalWithTargets` in DatabaseClient+GRDB)
+
+**Proper Fix Options** (for future migration):
+
+1. **Reverse Foreign Keys** (recommended):
+   - Add parent ID columns to ActivityGoalTargetRecord (everyXDaysGoalId, weeksPeriodGoalId, daysOfWeekGoalTargetId)
+   - Add foreign key constraints with `onDelete: .cascade` on these columns
+   - Remove targetId from parent tables
+   - Ensures exactly one parent reference is non-null
+
+2. **Database Triggers**:
+   - Add SQLite triggers to automatically delete targets when parents are deleted
+   - Example: `CREATE TRIGGER delete_target_on_everyxdays_delete AFTER DELETE ON everyXDaysActivityGoalRecord BEGIN DELETE FROM activityGoalTargetRecord WHERE id = OLD.targetId; END;`
+
+3. **Embed Target Data** (simplest long-term):
+   - Since targets are never shared, embed goalValue and goalSuccessCriteria directly in parent tables
+   - Eliminates the ActivityGoalTargetRecord table entirely
+   - Removes the orphan problem completely

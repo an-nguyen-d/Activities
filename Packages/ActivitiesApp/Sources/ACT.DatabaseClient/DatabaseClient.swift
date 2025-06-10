@@ -138,6 +138,18 @@ public struct DatabaseClient: Sendable {
   /// Updates an activity's fields based on the update operations provided
   public var updateActivity: @Sendable (UpdateActivity.Request) async throws -> UpdateActivity.Response
 
+  public enum DeleteActivity {
+    public struct Request: Sendable {
+      public let id: ActivityModel.ID
+      public init(id: ActivityModel.ID) {
+        self.id = id
+      }
+    }
+    public typealias Response = Void
+  }
+  /// Deletes an activity and all associated data (goals, sessions, tag links)
+  public var deleteActivity: @Sendable (DeleteActivity.Request) async throws -> DeleteActivity.Response
+
   // MARK: - Activity Tag Operations
 
   public enum CreateActivityTag {
@@ -388,6 +400,18 @@ public struct DatabaseClient: Sendable {
   /// Returns the most recent goal where effectiveCalendarDate <= calendarDate.
   public var fetchEffectiveGoal: @Sendable (FetchEffectiveGoal.Request) async throws -> FetchEffectiveGoal.Response
 
+  public enum DeleteGoal {
+    public struct Request: Sendable {
+      public let id: ActivityGoal.ID
+      public init(id: ActivityGoal.ID) {
+        self.id = id
+      }
+    }
+    public typealias Response = Void
+  }
+  /// Deletes a goal and all associated ActivityGoalTargetRecords
+  public var deleteGoal: @Sendable (DeleteGoal.Request) async throws -> DeleteGoal.Response
+
   public enum FetchActivityGoal {
     public enum FetchType: Sendable {
       case matchingEffectiveCalendarDate(CalendarDate)
@@ -460,6 +484,7 @@ public struct DatabaseClient: Sendable {
     fetchActivity: @Sendable @escaping (FetchActivity.Request) async throws -> FetchActivity.Response,
     fetchActivitiesNeedingEvaluation: @Sendable @escaping (FetchActivitiesNeedingEvaluation.Request) async throws -> FetchActivitiesNeedingEvaluation.Response,
     updateActivity: @Sendable @escaping (UpdateActivity.Request) async throws -> UpdateActivity.Response,
+    deleteActivity: @Sendable @escaping (DeleteActivity.Request) async throws -> DeleteActivity.Response,
     observeActivity: @Sendable @escaping (ObserveActivity.Request) async throws -> ObserveActivity.Response,
     observeActivitiesList: @Sendable @escaping (ObserveActivitiesList.Request) async throws -> ObserveActivitiesList.Response,
     observeActivityGoals: @Sendable @escaping (ObserveActivityGoals.Request) async throws -> ObserveActivityGoals.Response,
@@ -476,6 +501,7 @@ public struct DatabaseClient: Sendable {
     createDaysOfWeekGoal: @Sendable @escaping (CreateDaysOfWeekGoal.Request) async throws -> CreateDaysOfWeekGoal.Response,
     createWeeksPeriodGoal: @Sendable @escaping (CreateWeeksPeriodGoal.Request) async throws -> CreateWeeksPeriodGoal.Response,
     fetchEffectiveGoal: @Sendable @escaping (FetchEffectiveGoal.Request) async throws -> FetchEffectiveGoal.Response,
+    deleteGoal: @Sendable @escaping (DeleteGoal.Request) async throws -> DeleteGoal.Response,
     fetchActivityGoal: @Sendable @escaping (FetchActivityGoal.Request) async throws -> FetchActivityGoal.Response,
 
     createSession: @Sendable @escaping (CreateSession.Request) async throws -> CreateSession.Response,
@@ -489,6 +515,7 @@ public struct DatabaseClient: Sendable {
     self.fetchActivity = fetchActivity
     self.fetchActivitiesNeedingEvaluation = fetchActivitiesNeedingEvaluation
     self.updateActivity = updateActivity
+    self.deleteActivity = deleteActivity
     self.observeActivity = observeActivity
     self.observeActivitiesList = observeActivitiesList
     self.observeActivityGoals = observeActivityGoals
@@ -505,6 +532,7 @@ public struct DatabaseClient: Sendable {
     self.createDaysOfWeekGoal = createDaysOfWeekGoal
     self.createWeeksPeriodGoal = createWeeksPeriodGoal
     self.fetchEffectiveGoal = fetchEffectiveGoal
+    self.deleteGoal = deleteGoal
     self.fetchActivityGoal = fetchActivityGoal
 
     self.createSession = createSession

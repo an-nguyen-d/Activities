@@ -34,6 +34,13 @@ public struct ActivityGeneralTabFeature {
       case editNameTapped
       case addTagTapped
       case deleteTagTapped(ActivityTagModel)
+      case deleteActivityTapped
+      case didSelectAlertAction
+      
+      public enum Alert: Equatable {
+        case deleteActivity(DeleteActivityAction)
+      }
+      case alert(Alert)
     }
     
     @CasePathable
@@ -53,11 +60,20 @@ public struct ActivityGeneralTabFeature {
     case destination(PresentationAction<Destination.Action>)
   }
   
+  public enum DeleteActivityAction: Equatable {
+    case confirm
+  }
+  
   @Reducer
   public struct Destination {
     @CasePathable
     public enum State: Equatable {
       case tagsList(TagsListFeature.State)
+      
+      public enum Alert: Equatable {
+        case deleteActivity
+      }
+      case alert(Alert)
     }
     
     @CasePathable
@@ -151,6 +167,29 @@ public struct ActivityGeneralTabFeature {
             assertionFailure("Failed to unlink tag: \(error)")
           }
         }
+        
+      case .view(.deleteActivityTapped):
+        state.destination = .alert(.deleteActivity)
+        return .none
+        
+      case .view(.didSelectAlertAction):
+        state.destination = nil
+        return .none
+        
+      case .view(.alert(.deleteActivity(.confirm))):
+        state.destination = nil
+        return .run { [databaseClient, activityID = state.activityID] send in
+          do {
+            try await databaseClient.deleteActivity(.init(id: activityID))
+            // Send delegate action to notify parent that activity was deleted
+            await send(.delegate(.dismissScene))
+          } catch {
+            assertionFailure("Failed to delete activity: \(error)")
+          }
+        }
+        
+      case .view(.alert):
+        return .none
         
       case ._internal(.activityResponse(let activity)):
         state.activity = activity

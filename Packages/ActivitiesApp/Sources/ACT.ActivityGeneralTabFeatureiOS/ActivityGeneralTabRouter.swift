@@ -4,6 +4,7 @@ import ComposableArchitecture
 import ACT_ActivityGeneralTabFeature
 import ACT_TagsListFeature
 import ACT_TagsListFeatureiOS
+import ElixirShared
 
 @MainActor
 final class ActivityGeneralTabRouter {
@@ -36,3 +37,6 @@ final class ActivityGeneralTabRouter {
     }
   }
 }
+
+// MARK: - AlertRouting
+extension ActivityGeneralTabRouter: AlertRouting {}

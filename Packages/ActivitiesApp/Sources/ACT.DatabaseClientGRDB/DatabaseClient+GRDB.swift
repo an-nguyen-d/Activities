@@ -313,6 +313,23 @@ extension DatabaseClient {
 
       },
 
+      deleteActivity: { request in
+        try await dbQueue.write { db in
+          // First, fetch all goals for this activity
+          let goalRecords = try GoalRecord
+            .filter(Column("activityId") == request.id.rawValue)
+            .fetchAll(db)
+          
+          // Delete each goal with its targets
+          for goalRecord in goalRecords {
+            try deleteGoalWithTargets(db: db, goalId: goalRecord.id!)
+          }
+          
+          // Delete the activity (this cascades to sessions and tag links)
+          try ActivityRecord.deleteOne(db, key: request.id.rawValue)
+        }
+      },
+
       observeActivity: { request in
         AsyncThrowingStream { continuation in
           Task { @MainActor in
@@ -601,6 +618,12 @@ extension DatabaseClient {
 
       },
 
+      deleteGoal: { request in
+        try await dbQueue.write { db in
+          try deleteGoalWithTargets(db: db, goalId: request.id.rawValue)
+        }
+      },
+
       fetchActivityGoal: { request in
 
         try await dbQueue.read { db in
@@ -675,6 +698,64 @@ extension DatabaseClient {
 
 
     )
+  }
+
+  /// Deletes a goal and all associated ActivityGoalTargetRecords.
+  /// 
+  /// IMPORTANT: This manual cleanup is required because the foreign key relationship
+  /// between goal tables and ActivityGoalTargetRecord is backwards. The parent tables
+  /// (EveryXDaysActivityGoalRecord, etc.) reference ActivityGoalTargetRecord with 
+  /// onDelete: .cascade, which means:
+  /// - Deleting a target cascades UP and deletes the parent (dangerous!)
+  /// - Deleting a parent leaves orphaned targets (what we're cleaning up here)
+  ///
+  /// See CLAUDE.md for proper fix options in future migrations.
+  private static func deleteGoalWithTargets(db: Database, goalId: Int64) throws {
+    // First, fetch the goal to determine its type
+    guard let goalRecord = try GoalRecord.fetchOne(db, key: goalId) else {
+      assertionFailure("Attempting to delete non-existent goal with id \(goalId)")
+      return
+    }
+    
+    // Collect target IDs that need to be deleted based on goal type
+    var targetIdsToDelete: [Int64] = []
+    
+    switch goalRecord.goalType {
+    case .everyXDays:
+      if let everyXDaysRecord = try EveryXDaysActivityGoalRecord
+        .filter(Column("goalId") == goalId)
+        .fetchOne(db) {
+        targetIdsToDelete.append(everyXDaysRecord.targetId)
+      }
+      
+    case .daysOfWeek:
+      if let daysOfWeekRecord = try DaysOfWeekActivityGoalRecord
+        .filter(Column("goalId") == goalId)
+        .fetchOne(db) {
+        // Get all targets from the join table
+        let dayTargets = try DaysOfWeekGoalTargetRecord
+          .filter(Column("daysOfWeekGoalId") == daysOfWeekRecord.id!)
+          .fetchAll(db)
+        targetIdsToDelete.append(contentsOf: dayTargets.map { $0.targetId })
+      }
+      
+    case .weeksPeriod:
+      if let weeksPeriodRecord = try WeeksPeriodActivityGoalRecord
+        .filter(Column("goalId") == goalId)
+        .fetchOne(db) {
+        targetIdsToDelete.append(weeksPeriodRecord.targetId)
+      }
+    }
+    
+    // Delete the goal (this cascades to goal-specific tables)
+    try GoalRecord.deleteOne(db, key: goalId)
+    
+    // Manually delete the orphaned ActivityGoalTargetRecords
+    if !targetIdsToDelete.isEmpty {
+      try ActivityGoalTargetRecord
+        .filter(targetIdsToDelete.contains(Column("id")))
+        .deleteAll(db)
+    }
   }
 
   /// Returns goal records for an activity, sorted by effectiveCalendarDate descending (latest first)

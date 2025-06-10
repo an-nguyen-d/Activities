@@ -42,6 +42,8 @@ public class ActivityGeneralTabVC: UIViewController {
       store: store,
       dependencies: dependencies
     )
+    
+    bindRouting()
   }
   
   public override func viewWillAppear(_ animated: Bool) {
@@ -100,6 +102,45 @@ public class ActivityGeneralTabVC: UIViewController {
     
     generalTabView.addTagButton.onTapHandler = { [weak self] in
       self?.viewStore.send(.view(.addTagTapped))
+    }
+    
+    generalTabView.deleteActivityButton.onTapHandler = { [weak self] in
+      self?.viewStore.send(.view(.deleteActivityTapped))
+    }
+  }
+  
+  private func bindRouting() {
+    observe { [weak self] in
+      guard let self else { return }
+      
+      switch viewStore.state.destination {
+      case let .alert(alertState):
+        switch alertState {
+        case .deleteActivity:
+          router.routeToAlert(
+            from: self,
+            title: "Delete Activity",
+            message: "Are you sure you want to delete this activity? This action cannot be undone.",
+            preferredStyle: .alert,
+            addCancel: true,
+            actions: [
+              .init(
+                title: "Delete",
+                action: { [weak self] _ in
+                  self?.viewStore.send(.view(.alert(.deleteActivity(.confirm))))
+                },
+                style: .destructive
+              )
+            ],
+            textFields: [],
+            didSelectAction: { [weak self] in
+              self?.viewStore.send(.view(.didSelectAlertAction))
+            }
+          )
+        }
+      default:
+        break
+      }
     }
   }
 }
