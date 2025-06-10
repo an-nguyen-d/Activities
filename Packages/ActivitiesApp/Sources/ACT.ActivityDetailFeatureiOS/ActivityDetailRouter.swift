@@ -23,7 +23,10 @@ final class ActivityDetailRouter {
       state: \.generalTab,
       action: \.generalTab
     )
-    let generalVC = ActivityGeneralTabVC(store: generalStore)
+    let generalVC = ActivityGeneralTabVC(
+      store: generalStore,
+      dependencies: dependencies
+    )
     generalVC.tabBarItem = UITabBarItem(
       title: "General",
       image: UIImage(systemName: "info.circle"),

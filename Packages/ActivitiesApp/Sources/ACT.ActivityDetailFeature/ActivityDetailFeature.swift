@@ -79,11 +79,8 @@ public struct ActivityDetailFeature {
         return .none
 
       case .generalTab(.delegate(.dismissScene)):
-        return .send(.delegate(.dismiss))
         // Activity was deleted, dismiss the entire detail view
-        // This should be handled by the parent
-
-        return .none
+        return .send(.delegate(.dismiss))
         
       case .generalTab:
         return .none

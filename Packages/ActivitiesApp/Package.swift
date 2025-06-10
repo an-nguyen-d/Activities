@@ -106,6 +106,9 @@ enum PackageTarget: String, CaseIterable {
   
   case ActivitySessionsTabFeature
   case ActivitySessionsTabFeatureiOS
+  
+  case TagsListFeature
+  case TagsListFeatureiOS
 
   case ActivitiesStreakEvaluationClient
 
@@ -353,7 +356,9 @@ enum PackageTarget: String, CaseIterable {
     case .ActivityGeneralTabFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
-          .SharedModels
+          .DatabaseClient,
+          .SharedModels,
+          .TagsListFeature
         ) + [
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
         ]
@@ -363,7 +368,10 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .ActivityGeneralTabFeature,
-          .SharedModels
+          .SharedModels,
+          .SharedUI,
+          .TagsListFeature,
+          .TagsListFeatureiOS
         ) + [
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
         ]
@@ -401,6 +409,26 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .ActivitySessionsTabFeature,
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .TagsListFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .TagsListFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .TagsListFeature,
           .SharedModels
         ) + [
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency

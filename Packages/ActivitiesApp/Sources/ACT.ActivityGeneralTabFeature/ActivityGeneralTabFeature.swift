@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import ACT_SharedModels
 import ACT_DatabaseClient
+import ACT_TagsListFeature
 
 @Reducer
 public struct ActivityGeneralTabFeature {
@@ -9,6 +10,9 @@ public struct ActivityGeneralTabFeature {
   public struct State: Equatable {
     public let activityID: ActivityModel.ID
     public var activity: ActivityModel?
+    
+    @Presents
+    public var destination: Destination.State?
     
     public init(activityID: ActivityModel.ID) {
       self.activityID = activityID
@@ -42,6 +46,32 @@ public struct ActivityGeneralTabFeature {
     case view(ViewAction)
     case _internal(InternalAction)
     case delegate(DelegateAction)
+    case destination(PresentationAction<Destination.Action>)
+  }
+  
+  @Reducer
+  public struct Destination {
+    @CasePathable
+    public enum State: Equatable {
+      case tagsList(TagsListFeature.State)
+    }
+    
+    @CasePathable
+    public enum Action: Equatable {
+      case tagsList(TagsListFeature.Action)
+    }
+    
+    let dependencies: Dependencies
+    
+    init(dependencies: Dependencies) {
+      self.dependencies = dependencies
+    }
+    
+    public var body: some Reducer<State, Action> {
+      Scope(state: \.tagsList, action: \.tagsList) {
+        TagsListFeature(dependencies: dependencies)
+      }
+    }
   }
   
   public typealias Dependencies = HasDatabaseClient
@@ -77,7 +107,12 @@ public struct ActivityGeneralTabFeature {
         return .none
         
       case .view(.addTagTapped):
-        // TODO: Present add tag scene
+        state.destination = .tagsList(
+          TagsListFeature.State(
+            activityID: state.activityID,
+            tagIDsToHide: Set() // TODO: Will be populated from observed tags
+          )
+        )
         return .none
         
       case .view(.deleteTagTapped):
@@ -97,7 +132,17 @@ public struct ActivityGeneralTabFeature {
       case .delegate:
         // Delegate actions are handled by parent
         return .none
+        
+      case .destination(.presented(.tagsList(.delegate(.dismissed)))):
+        state.destination = nil
+        return .none
+        
+      case .destination:
+        return .none
       }
+    }
+    .ifLet(\.$destination, action: \.destination) {
+      Destination(dependencies: dependencies)
     }
   }
 }

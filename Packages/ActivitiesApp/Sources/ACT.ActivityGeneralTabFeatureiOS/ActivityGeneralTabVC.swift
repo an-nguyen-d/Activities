@@ -10,10 +10,16 @@ public class ActivityGeneralTabVC: UIViewController {
   private let viewStore: ViewStoreOf<ActivityGeneralTabFeature>
   private let generalTabView = ActivityGeneralTabView()
   private var tagsManager: TagsCollection.Manager!
+  private var router: ActivityGeneralTabRouter!
+  private let dependencies: ActivityGeneralTabFeature.Dependencies
   
-  public init(store: StoreOf<ActivityGeneralTabFeature>) {
+  public init(
+    store: StoreOf<ActivityGeneralTabFeature>,
+    dependencies: ActivityGeneralTabFeature.Dependencies
+  ) {
     self.store = store
     self.viewStore = ViewStore(store, observe: { $0 })
+    self.dependencies = dependencies
     super.init(nibName: nil, bundle: nil)
   }
   
@@ -30,6 +36,12 @@ public class ActivityGeneralTabVC: UIViewController {
     setupTagsManager()
     bindState()
     bindActions()
+    
+    router = ActivityGeneralTabRouter(
+      viewController: self,
+      store: store,
+      dependencies: dependencies
+    )
   }
   
   public override func viewWillAppear(_ animated: Bool) {
