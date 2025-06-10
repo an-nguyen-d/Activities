@@ -70,6 +70,10 @@ public final class ActivitiesListVC: BaseViewController {
     collectionManager.onCellTapped = { [weak self] activityId in
       self?.viewStore.send(.activityCellTapped(activityId: activityId))
     }
+    
+    collectionManager.onCellLongPressed = { [weak self] activityId in
+      self?.viewStore.send(.activityLongPressed(activityId: activityId))
+    }
 
     setupNavigationBar()
     observeStore()

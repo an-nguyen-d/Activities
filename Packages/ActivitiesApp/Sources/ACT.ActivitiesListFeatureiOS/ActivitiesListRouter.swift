@@ -3,6 +3,7 @@ import ComposableArchitecture
 import ACT_ActivitiesListFeature
 import ACT_ActivityCreationFeatureiOS
 import ACT_CreateSessionFeatureiOS
+import ACT_ActivityDetailFeatureiOS
 
 @MainActor
 final class ActivitiesListRouter {
@@ -53,6 +54,18 @@ final class ActivitiesListRouter {
         dependencies: dependencies
       )
       return UINavigationController(rootViewController: createSessionVC)
+    }
+    
+    viewController?.present(
+      item: $store.scope(
+        state: \.destination?.activityDetail,
+        action: \.destination.activityDetail
+      )
+    ) { store in
+      let activityDetailVC = ActivityDetailRouter.makeActivityDetailVC(
+        activityID: store.withState(\.activityID)
+      )
+      return UINavigationController(rootViewController: activityDetailVC)
     }
   }
 

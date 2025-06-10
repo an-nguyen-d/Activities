@@ -25,6 +25,7 @@ extension ActivitiesCollection {
     // Closures to handle cell interactions
     var onQuickLogTapped: ((ActivityModel.ID) -> Void)?
     var onCellTapped: ((ActivityModel.ID) -> Void)?
+    var onCellLongPressed: ((ActivityModel.ID) -> Void)?
     
     // Dependencies for view model creation
     typealias Dependencies = 
@@ -57,6 +58,20 @@ extension ActivitiesCollection {
     
     private func setupCollectionView() {
       collectionView.delegate = self
+      
+      // Add long press gesture recognizer
+      let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+      collectionView.addGestureRecognizer(longPressGesture)
+    }
+    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+      guard gesture.state == .began else { return }
+      
+      let location = gesture.location(in: collectionView)
+      guard let indexPath = collectionView.indexPathForItem(at: location),
+            let model = dataSource?.itemIdentifier(for: indexPath) else { return }
+      
+      onCellLongPressed?(model.id)
     }
     
     func startTimer() {

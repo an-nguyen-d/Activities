@@ -95,6 +95,18 @@ enum PackageTarget: String, CaseIterable {
   case CreateSessionFeature
   case CreateSessionFeatureiOS
 
+  case ActivityDetailFeature
+  case ActivityDetailFeatureiOS
+  
+  case ActivityGeneralTabFeature
+  case ActivityGeneralTabFeatureiOS
+  
+  case ActivityGoalsTabFeature
+  case ActivityGoalsTabFeatureiOS
+  
+  case ActivitySessionsTabFeature
+  case ActivitySessionsTabFeatureiOS
+
   case ActivitiesStreakEvaluationClient
 
   case DatabaseClient
@@ -145,6 +157,7 @@ enum PackageTarget: String, CaseIterable {
         dependencies: createTargetDependencies(
           .CreateSessionFeature,
           .ActivityCreationFeature,
+          .ActivityDetailFeature,
           .SharedModels,
           .DatabaseClient
         ) + [
@@ -161,6 +174,7 @@ enum PackageTarget: String, CaseIterable {
           .SharedUI,
           .ActivityCreationFeatureiOS,
           .CreateSessionFeatureiOS,
+          .ActivityDetailFeatureiOS,
           .GoalEvaluationClient
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
@@ -310,6 +324,85 @@ enum PackageTarget: String, CaseIterable {
           .SharedModels
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityDetailFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityDetailFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivityDetailFeature,
+          .ActivityGeneralTabFeatureiOS,
+          .ActivityGoalsTabFeatureiOS,
+          .ActivitySessionsTabFeatureiOS,
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityGeneralTabFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityGeneralTabFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivityGeneralTabFeature,
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityGoalsTabFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityGoalsTabFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivityGoalsTabFeature,
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivitySessionsTabFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivitySessionsTabFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivitySessionsTabFeature,
+          .SharedModels
+        ) + [
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
         ]
       )

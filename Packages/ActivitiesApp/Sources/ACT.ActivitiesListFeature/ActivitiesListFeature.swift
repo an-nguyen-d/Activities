@@ -4,6 +4,7 @@ import Foundation
 import IdentifiedCollections
 import ACT_ActivityCreationFeature
 import ACT_CreateSessionFeature
+import ACT_ActivityDetailFeature
 import ACT_SharedModels
 import ACT_DatabaseClient
 
@@ -36,6 +37,7 @@ public struct ActivitiesListFeature {
       case addButtonTapped
       case quickLogTapped(activityId: ActivityModel.ID)
       case activityCellTapped(activityId: ActivityModel.ID)
+      case activityLongPressed(activityId: ActivityModel.ID)
     }
 
     public enum InternalAction: Equatable {
@@ -60,12 +62,14 @@ public struct ActivitiesListFeature {
     public enum State: Equatable {
       case activityCreation(ActivityCreationFeature.State)
       case createSession(CreateSessionFeature.State)
+      case activityDetail(ActivityDetailFeature.State)
     }
 
     @CasePathable
     public enum Action: Equatable {
       case activityCreation(ActivityCreationFeature.Action)
       case createSession(CreateSessionFeature.Action)
+      case activityDetail(ActivityDetailFeature.Action)
     }
 
     let dependencies: Dependencies
@@ -80,6 +84,9 @@ public struct ActivitiesListFeature {
       }
       Scope(state: \.createSession, action: \.createSession) {
         CreateSessionFeature(dependencies: dependencies)
+      }
+      Scope(state: \.activityDetail, action: \.activityDetail) {
+        ActivityDetailFeature()
       }
     }
 
@@ -211,6 +218,12 @@ public struct ActivitiesListFeature {
         )
       )
       return .none
+      
+    case let .activityLongPressed(activityId: activityId):
+      state.destination = .activityDetail(
+        ActivityDetailFeature.State(activityID: activityId)
+      )
+      return .none
     }
   }
 
@@ -257,6 +270,9 @@ public struct ActivitiesListFeature {
         default:
           return .none
         }
+        
+      case .activityDetail:
+        return .none
       }
 
     }
