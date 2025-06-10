@@ -86,7 +86,7 @@ public struct ActivitiesListFeature {
         CreateSessionFeature(dependencies: dependencies)
       }
       Scope(state: \.activityDetail, action: \.activityDetail) {
-        ActivityDetailFeature()
+        ActivityDetailFeature(dependencies: dependencies)
       }
     }
 
@@ -97,6 +97,7 @@ public struct ActivitiesListFeature {
   public typealias Dependencies = 
     ActivityCreationFeature.Dependencies &
     CreateSessionFeature.Dependencies &
+    ActivityDetailFeature.Dependencies &
     HasDatabaseClient &
     HasDateMaker &
     HasTimeZone
@@ -271,7 +272,19 @@ public struct ActivitiesListFeature {
           return .none
         }
         
-      case .activityDetail:
+      case let .activityDetail(action):
+        switch action {
+        case let .delegate(delegateAction):
+          switch delegateAction {
+          case .dismiss:
+            state.destination = nil
+            return .none
+          }
+        default:
+          return .none
+        }
+
+
         return .none
       }
 

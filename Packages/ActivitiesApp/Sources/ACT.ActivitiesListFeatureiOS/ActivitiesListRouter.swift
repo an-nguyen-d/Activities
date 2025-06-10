@@ -61,11 +61,14 @@ final class ActivitiesListRouter {
         state: \.destination?.activityDetail,
         action: \.destination.activityDetail
       )
-    ) { store in
-      let activityDetailVC = ActivityDetailRouter.makeActivityDetailVC(
-        activityID: store.withState(\.activityID)
+    ) { [dependencies] store in
+      let activityDetailVC = ActivityDetailVC(
+        store: store,
+        dependencies: dependencies
       )
-      return UINavigationController(rootViewController: activityDetailVC)
+      let navController = UINavigationController(rootViewController: activityDetailVC)
+      navController.modalPresentationStyle = .fullScreen
+      return navController
     }
   }
 

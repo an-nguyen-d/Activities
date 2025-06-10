@@ -7,31 +7,80 @@ import ACT_ActivityGoalsTabFeatureiOS
 import ACT_ActivitySessionsTabFeatureiOS
 
 public class ActivityDetailVC: UITabBarController {
-  
-  private let store: StoreOf<ActivityDetailFeature>
-  private let viewStore: ViewStoreOf<ActivityDetailFeature>
-  
-  public init(store: StoreOf<ActivityDetailFeature>) {
-    self.store = store
-    self.viewStore = ViewStore(store, observe: { $0 })
+
+  // MARK: - Typealiases
+
+  public typealias Module = ActivityDetailFeature
+  public typealias Dependencies = Module.Dependencies
+
+  private typealias Router = ActivityDetailRouter
+  private typealias State = Module.State
+  private typealias ViewAction = Module.Action.ViewAction
+
+  // MARK: - Properties
+
+  private var router: Router!
+  private var viewStore: Store<State, ViewAction>
+  private let dependencies: Dependencies
+
+  // MARK: - Init
+
+  public init(
+    store: StoreOf<Module>,
+    dependencies: Dependencies
+  ) {
+    self.viewStore = store.scope(
+      state: \.self,
+      action: \.view
+    )
+    self.dependencies = dependencies
     super.init(nibName: nil, bundle: nil)
+    self.router = Router(
+      viewController: self,
+      store: store,
+      dependencies: dependencies
+    )
   }
-  
-  required init?(coder: NSCoder) {
+
+  @MainActor required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
   public override func viewDidLoad() {
     super.viewDidLoad()
     
     setupTabs()
+    setupNavigationBar()
+    observeDelegateActions()
+  }
+  
+  private func setupNavigationBar() {
+    navigationItem.leftBarButtonItem = UIBarButtonItem(
+      barButtonSystemItem: .close,
+      target: self,
+      action: #selector(dismissTapped)
+    )
+  }
+  
+  @objc private func dismissTapped() {
+    dismiss(animated: true)
+  }
+  
+  private func observeDelegateActions() {
+    observe { [weak self] in
+      guard let self = self else { return }
+
+    }
   }
   
   private func setupTabs() {
-    let activityID = viewStore.activityID
-    
     // General Tab
-    let generalVC = ActivityGeneralTabVC(activityID: activityID)
+    /*
+    let generalStore = store.scope(
+      state: \.generalTab,
+      action: \.generalTab
+    )
+    let generalVC = ActivityGeneralTabVC(store: generalStore)
     generalVC.tabBarItem = UITabBarItem(
       title: "General",
       image: UIImage(systemName: "info.circle"),
@@ -39,7 +88,11 @@ public class ActivityDetailVC: UITabBarController {
     )
     
     // Goals Tab
-    let goalsVC = ActivityGoalsTabVC(activityID: activityID)
+    let goalsStore = store.scope(
+      state: \.goalsTab,
+      action: \.goalsTab
+    )
+    let goalsVC = ActivityGoalsTabVC(store: goalsStore)
     goalsVC.tabBarItem = UITabBarItem(
       title: "Goals",
       image: UIImage(systemName: "target"),
@@ -47,7 +100,11 @@ public class ActivityDetailVC: UITabBarController {
     )
     
     // Sessions Tab
-    let sessionsVC = ActivitySessionsTabVC(activityID: activityID)
+    let sessionsStore = store.scope(
+      state: \.sessionsTab,
+      action: \.sessionsTab
+    )
+    let sessionsVC = ActivitySessionsTabVC(store: sessionsStore)
     sessionsVC.tabBarItem = UITabBarItem(
       title: "Sessions",
       image: UIImage(systemName: "clock"),
@@ -56,13 +113,15 @@ public class ActivityDetailVC: UITabBarController {
     
     // Set view controllers
     viewControllers = [generalVC, goalsVC, sessionsVC]
-    
+    */
+
+
     // Send view actions
-    viewStore.send(.view(.willAppear))
+    viewStore.send(.willAppear)
   }
   
   public override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
-    viewStore.send(.view(.willDisappear))
+    viewStore.send(.willDisappear)
   }
 }

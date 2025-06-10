@@ -8,11 +8,7 @@ public class ActivitySessionsTabVC: UIViewController {
   private let store: StoreOf<ActivitySessionsTabFeature>
   private let viewStore: ViewStoreOf<ActivitySessionsTabFeature>
   
-  public init(activityID: ActivityModel.ID) {
-    let store = Store(
-      initialState: ActivitySessionsTabFeature.State(activityID: activityID),
-      reducer: { ActivitySessionsTabFeature() }
-    )
+  public init(store: StoreOf<ActivitySessionsTabFeature>) {
     self.store = store
     self.viewStore = ViewStore(store, observe: { $0 })
     super.init(nibName: nil, bundle: nil)

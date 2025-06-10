@@ -2,17 +2,16 @@ import UIKit
 import ComposableArchitecture
 import ACT_ActivityGeneralTabFeature
 import ACT_SharedModels
+import ACT_SharedUI
 
 public class ActivityGeneralTabVC: UIViewController {
   
   private let store: StoreOf<ActivityGeneralTabFeature>
   private let viewStore: ViewStoreOf<ActivityGeneralTabFeature>
+  private let generalTabView = ActivityGeneralTabView()
+  private var tagsManager: TagsCollection.Manager!
   
-  public init(activityID: ActivityModel.ID) {
-    let store = Store(
-      initialState: ActivityGeneralTabFeature.State(activityID: activityID),
-      reducer: { ActivityGeneralTabFeature() }
-    )
+  public init(store: StoreOf<ActivityGeneralTabFeature>) {
     self.store = store
     self.viewStore = ViewStore(store, observe: { $0 })
     super.init(nibName: nil, bundle: nil)
@@ -25,23 +24,12 @@ public class ActivityGeneralTabVC: UIViewController {
   public override func viewDidLoad() {
     super.viewDidLoad()
     
-    // Set red background for visual testing
-    view.backgroundColor = .systemRed
+    view.backgroundColor = .black
     
-    // Add a label to show the activity ID
-    let label = UILabel()
-    label.text = "General Tab\nActivity ID: \(viewStore.activityID.rawValue)"
-    label.textAlignment = .center
-    label.numberOfLines = 0
-    label.textColor = .white
-    label.font = .systemFont(ofSize: 20, weight: .medium)
-    label.translatesAutoresizingMaskIntoConstraints = false
-    
-    view.addSubview(label)
-    NSLayoutConstraint.activate([
-      label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-      label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-    ])
+    setupUI()
+    setupTagsManager()
+    bindState()
+    bindActions()
   }
   
   public override func viewWillAppear(_ animated: Bool) {
@@ -52,5 +40,52 @@ public class ActivityGeneralTabVC: UIViewController {
   public override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     viewStore.send(.view(.willDisappear))
+  }
+  
+  // MARK: - Setup
+  
+  private func setupUI() {
+    generalTabView.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(generalTabView)
+    
+    NSLayoutConstraint.activate([
+      generalTabView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      generalTabView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      generalTabView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      generalTabView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+    ])
+  }
+  
+  private func setupTagsManager() {
+    tagsManager = TagsCollection.Manager(collectionView: generalTabView.tagsCollectionView)
+    
+    // Set up delete handler
+    tagsManager.onDeleteTapped = { [weak self] index in
+      // For now, just log the deletion - we'll implement the actual deletion later
+      print("Delete tag at index: \(index)")
+      // self?.viewStore.send(.view(.deleteTagTapped(tag)))
+    }
+  }
+  
+  private func bindState() {
+    // Observe activity changes
+    observe { [weak self] in
+      guard let self = self else { return }
+      
+      // Update UI when activity changes
+      if let activity = self.viewStore.activity {
+        self.generalTabView.configure(activity: activity)
+      }
+    }
+  }
+  
+  private func bindActions() {
+    generalTabView.editNameButton.onTapHandler = { [weak self] in
+      self?.viewStore.send(.view(.editNameTapped))
+    }
+    
+    generalTabView.addTagButton.onTapHandler = { [weak self] in
+      self?.viewStore.send(.view(.addTagTapped))
+    }
   }
 }

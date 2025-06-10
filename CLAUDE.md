@@ -24,6 +24,51 @@ This is an iOS app built with The Composable Architecture (TCA), featuring a mod
 - **Streaks**: Automatic calculation based on goal completion
 - **Success Criteria**: "at least", "exactly", "less than" goals
 
+## UI Architecture & Styling Principles
+
+### View Construction Pattern
+All iOS feature views should follow the pattern established in `ActivityCreationView`:
+
+1. **Inherit from BaseView** (from ElixirShared):
+   ```swift
+   final class MyFeatureView: BaseView { ... }
+   ```
+
+2. **Use updateObject for inline configuration**:
+   ```swift
+   private let myLabel = updateObject(UILabel()) {
+       $0.text = "SECTION TITLE"
+       $0.font = .systemFont(ofSize: 12, weight: .regular)
+       $0.textColor = .secondaryLabel
+   }
+   ```
+
+3. **Override setupView() and setupSubviews()**:
+   - `setupView()`: Configure view properties
+   - `setupSubviews()`: Add subviews and constraints using ElixirShared utilities
+
+4. **Use ElixirShared Layout Utilities**:
+   - `addSubviews()`: Add multiple subviews at once
+   - `fillView()`: Constraint view to fill superview
+   - `anchor()`: Convenient Auto Layout API
+
+### Consistent Styling
+- **Section Headers**: All caps, 12pt regular font, `.secondaryLabel` color
+- **Body Text**: `.preferredFont(forTextStyle: .body)`, `.View.Text.primary` color
+- **Interactive Elements**: `.peterRiver` color for buttons and links
+- **Spacing**: 24pt between sections, 20pt padding from edges
+- **Background**: `.View.Background.primary` (black)
+
+### UI Component Patterns
+- **Scroll Views**: Use for all content that might overflow
+- **Stack Views**: Vertical stacks with 24pt spacing for main content layout
+- **Buttons**: 
+  - **ALWAYS use BaseButton** instead of UIButton
+  - Set tap handlers using `button.onTapHandler = { }` instead of `addTarget`
+  - For text buttons: Set `.peterRiver` tint color
+  - For primary action buttons: Set `.peterRiver` background with white text
+- **Collection Views**: For dynamic content like tags with flow layout
+
 ## Common Development Commands
 
 ### Build Commands
