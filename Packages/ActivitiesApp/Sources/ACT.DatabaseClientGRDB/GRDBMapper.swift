@@ -98,6 +98,31 @@ extension GRDBMapper {
 }
 
 extension GRDBMapper {
+  enum MapActivityGoalTarget {
+    static func toModel(from record: ActivityGoalTargetRecord) -> ActivityGoalTargetModel? {
+      guard let goalSuccessCriteria = GoalSuccessCriteria(rawValue: record.goalSuccessCriteria) else {
+        assertionFailure("Invalid goalSuccessCriteria value '\(record.goalSuccessCriteria)' in database. Valid values are: atLeast, exactly, lessThan")
+        return nil
+      }
+      
+      return ActivityGoalTargetModel(
+        id: .init(record.id!),
+        goalValue: record.goalValue,
+        goalSuccessCriteria: goalSuccessCriteria
+      )
+    }
+    
+    static func toRecord(from model: ActivityGoalTargetModel) -> ActivityGoalTargetRecord {
+      return ActivityGoalTargetRecord(
+        id: model.id.rawValue,
+        goalValue: model.goalValue,
+        goalSuccessCriteria: model.goalSuccessCriteria.rawValue
+      )
+    }
+  }
+}
+
+extension GRDBMapper {
 
   enum MapGoal {
 
@@ -106,21 +131,16 @@ extension GRDBMapper {
       everyXDaysRecord: EveryXDaysActivityGoalRecord,
       targetRecord: ActivityGoalTargetRecord
     ) -> EveryXDaysActivityGoalModel? {
-      guard let goalSuccessCriteria = GoalSuccessCriteria(rawValue: targetRecord.goalSuccessCriteria) else {
-        assertionFailure("Invalid goalSuccessCriteria value '\(targetRecord.goalSuccessCriteria)' in database. Valid values are: at_least, exactly, less_than")
+      guard let target = MapActivityGoalTarget.toModel(from: targetRecord) else {
         return nil
       }
-
+      
       return EveryXDaysActivityGoalModel(
         id: .init(goalRecord.id!),
         createDate: goalRecord.createDate,
         effectiveCalendarDate: CalendarDate(goalRecord.effectiveCalendarDate),
         daysInterval: everyXDaysRecord.daysInterval,
-        target: ActivityGoalTargetModel(
-          id: .init(targetRecord.id!),
-          goalValue: targetRecord.goalValue,
-          goalSuccessCriteria: goalSuccessCriteria
-        )
+        target: target
       )
     }
 
@@ -133,16 +153,9 @@ extension GRDBMapper {
       var targetsByDay: [Int: ActivityGoalTargetModel] = [:]
 
       for (dayOfWeek, targetRecord) in daysOfWeekTargets {
-        guard let goalSuccessCriteria = GoalSuccessCriteria(rawValue: targetRecord.goalSuccessCriteria) else {
-          assertionFailure("Invalid goalSuccessCriteria value '\(targetRecord.goalSuccessCriteria)' in database")
-          continue
+        if let target = MapActivityGoalTarget.toModel(from: targetRecord) {
+          targetsByDay[dayOfWeek] = target
         }
-
-        targetsByDay[dayOfWeek] = ActivityGoalTargetModel(
-          id: .init(targetRecord.id!),
-          goalValue: targetRecord.goalValue,
-          goalSuccessCriteria: goalSuccessCriteria
-        )
       }
 
       // Map to each day using DayOfWeek enum values
@@ -166,20 +179,15 @@ extension GRDBMapper {
       weeksPeriodRecord: WeeksPeriodActivityGoalRecord,
       targetRecord: ActivityGoalTargetRecord
     ) -> WeeksPeriodActivityGoalModel? {
-      guard let goalSuccessCriteria = GoalSuccessCriteria(rawValue: targetRecord.goalSuccessCriteria) else {
-        assertionFailure("Invalid goalSuccessCriteria value '\(targetRecord.goalSuccessCriteria)' in database. Valid values are: at_least, exactly, less_than")
+      guard let target = MapActivityGoalTarget.toModel(from: targetRecord) else {
         return nil
       }
-
+      
       return WeeksPeriodActivityGoalModel(
         id: .init(goalRecord.id!),
         createDate: goalRecord.createDate,
         effectiveCalendarDate: CalendarDate(goalRecord.effectiveCalendarDate),
-        target: ActivityGoalTargetModel(
-          id: .init(targetRecord.id!),
-          goalValue: targetRecord.goalValue,
-          goalSuccessCriteria: goalSuccessCriteria
-        )
+        target: target
       )
     }
   }

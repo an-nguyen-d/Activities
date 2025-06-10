@@ -1,7 +1,16 @@
 import Foundation
 import Tagged
 
-public struct WeeksPeriodActivityGoalModel {
+/// A goal that evaluates success based on accumulating a target value over a weekly period.
+/// 
+/// Unlike daily goals (DaysOfWeek, EveryXDays), this goal type accumulates all sessions
+/// within a week-long period and evaluates success at the end of the week.
+/// 
+/// Example: "Complete at least 150 minutes of meditation per week"
+/// - The user can complete this in any pattern: 5x30min, 7x21min, 1x150min, etc.
+/// - All sessions from Monday-Sunday count toward the weekly target
+/// - Success is evaluated only on Sunday when the week is complete
+public struct WeeksPeriodActivityGoalModel: Equatable {
 
   public let id: ActivityGoal.ID
 
@@ -10,6 +19,7 @@ public struct WeeksPeriodActivityGoalModel {
   /// Always a Monday - the start of the period
   public let effectiveCalendarDate: CalendarDate
 
+  /// The target to achieve over the entire week period (e.g., 150 minutes, 5 sessions, etc.)
   public let target: ActivityGoalTargetModel
 
   public init(
@@ -24,27 +34,6 @@ public struct WeeksPeriodActivityGoalModel {
     self.target = target
   }
 
-  // Convenience init
-  public init(
-    id: ActivityGoal.ID,
-    createDate: Date,
-    effectiveCalendarDate: CalendarDate,
-    goalID: ActivityGoalTargetModel.ID,
-    goalValue: Double,
-    goalSuccessCriteria: GoalSuccessCriteria
-  ) {
-    assert(effectiveCalendarDate.dayOfWeek() == Global.startingDayOfWeek)
-    self.init(
-      id: id,
-      createDate: createDate,
-      effectiveCalendarDate: effectiveCalendarDate,
-      target: ActivityGoalTargetModel(
-        id: goalID,
-        goalValue: goalValue,
-        goalSuccessCriteria: goalSuccessCriteria
-      )
-    )
-  }
 }
 
 extension WeeksPeriodActivityGoalModel: ActivityGoal.Modelling {
@@ -63,8 +52,8 @@ extension WeeksPeriodActivityGoalModel: ActivityGoal.Modelling {
     return (periodStartMonday, periodEndSunday)
   }
 
-  public func getSessionsDateRangeForTarget(evaluationCalendarDate: CalendarDate) -> CalendarDateRange {
-    let (periodStart, periodEnd) = calculatePeriodBounds(for: evaluationCalendarDate)
+  public func getSessionsDateRangeForTarget(onCalendarDate: CalendarDate) -> CalendarDateRange {
+    let (periodStart, periodEnd) = calculatePeriodBounds(for: onCalendarDate)
     return .multipleDays(start: periodStart, end: periodEnd)
   }
 

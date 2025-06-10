@@ -1,6 +1,8 @@
 import Foundation
 import ElixirShared
 import ACT_SharedUI
+import ACT_SharedModels
+import ACT_GoalEvaluationClient
 
 enum ActivitiesCollection {
 
@@ -15,9 +17,22 @@ extension ActivitiesCollection.Cell {
 
   final class Activity: BaseCollectionCell {
 
-    struct Model {
-
+    struct Model: Hashable, Sendable {
+      let id: ActivityModel.ID
+      let activityName: String
+      let goalStatusText: String
+      let lastCompletedText: String
+      let lastCompletedDate: Date? // Store the actual date for timer updates
+      let streakNumber: String
+      let streakColor: UIColor
+      let progressPercentage: Double // 0.0 to 1.0
+      let goalStatus: GoalStatus // Store status for sorting
+      
+      // Source data hash for cache validation (includes calendar date)
+      let sourceDataHash: Int
     }
+    
+    var onQuickLogTapped: ((ActivityModel.ID) -> Void)?
 
     let streakVSeparatorView = updateObject(UIView()) {
       $0.backgroundColor = .View.separator
@@ -99,7 +114,7 @@ extension ActivitiesCollection.Cell {
 
       streakVSeparatorView.fillVertically(contentView)
       streakVSeparatorView.anchor(
-        .leading(streakCountLabel.trailingAnchor, constant: 8),
+        .leading(contentView.leadingAnchor, constant: 44),
         .width(1)
       )
 
@@ -140,8 +155,22 @@ extension ActivitiesCollection.Cell {
 
     }
 
+    private var currentModelId: ActivityModel.ID?
+    
     func configure(with model: Model) {
-
+      nameLabel.text = model.activityName
+      goalStatusLabel.text = model.goalStatusText
+      lastCompleteLabel.text = model.lastCompletedText
+      streakCountLabel.text = model.streakNumber
+      streakCountLabel.textColor = model.streakColor
+      goalProgressView.progress = model.progressPercentage
+      
+      // Store the model ID and set up button handler
+      currentModelId = model.id
+      logQuickActionButton.onTapHandler = { [weak self] in
+        guard let self = self, let activityId = self.currentModelId else { return }
+        self.onQuickLogTapped?(activityId)
+      }
     }
 
   }

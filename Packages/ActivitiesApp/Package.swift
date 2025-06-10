@@ -17,7 +17,7 @@ let package = Package(
 //    PackageDependency.SwiftLint.packageDependency,
     PackageDependency.ComposableArchitecture.packageDependency,
     PackageDependency.SwiftTagged.packageDependency,
-//    PackageDependency.XCTestDynamicOverlay.packageDependency,
+    PackageDependency.XCTestDynamicOverlay.packageDependency,
 //    PackageDependency.Overture.packageDependency,
 //    PackageDependency.Prelude.packageDependency,
 //    PackageDependency.CombineCocoa.packageDependency,
@@ -79,6 +79,39 @@ enum PackageTarget: String, CaseIterable {
   case ActivitiesListFeatureOld
 
   case ActivitiesListFeatureUIKitOld
+  
+  case ActivityCreationFeature
+  case ActivityCreationFeatureiOS
+
+  case DaysOfWeekGoalCreationFeature
+  case DaysOfWeekGoalCreationFeatureiOS
+  
+  case EveryXDaysGoalCreationFeature
+  case EveryXDaysGoalCreationFeatureiOS
+  
+  case WeeksPeriodGoalCreationFeature
+  case WeeksPeriodGoalCreationFeatureiOS
+  
+  case GoalCreationFeature
+  case GoalCreationFeatureiOS
+  
+  case CreateSessionFeature
+  case CreateSessionFeatureiOS
+
+  case ActivityDetailFeature
+  case ActivityDetailFeatureiOS
+  
+  case ActivityGeneralTabFeature
+  case ActivityGeneralTabFeatureiOS
+  
+  case ActivityGoalsTabFeature
+  case ActivityGoalsTabFeatureiOS
+  
+  case ActivitySessionsTabFeature
+  case ActivitySessionsTabFeatureiOS
+  
+  case TagsListFeature
+  case TagsListFeatureiOS
 
   case ActivitiesStreakEvaluationClient
 
@@ -88,9 +121,13 @@ enum PackageTarget: String, CaseIterable {
   case GoalEvaluationClient
   case GoalCreationClient
 
+  case Shared
+  
   case SharedModels
 
   case SharedUI
+
+  case AppDependenciesLive
 
   // Tests
 
@@ -124,10 +161,15 @@ enum PackageTarget: String, CaseIterable {
     case .ActivitiesListFeature:
       return createPackageTarget(
         dependencies: createTargetDependencies(
-
+          .CreateSessionFeature,
+          .ActivityCreationFeature,
+          .ActivityDetailFeature,
+          .SharedModels,
+          .DatabaseClient
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
-          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
+          PackageDependency.IdentifiedCollections.Product.identifiedCollections.targetDependency
         ]
       )
 
@@ -135,7 +177,11 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .ActivitiesListFeature,
-          .SharedUI
+          .SharedUI,
+          .ActivityCreationFeatureiOS,
+          .CreateSessionFeatureiOS,
+          .ActivityDetailFeatureiOS,
+          .GoalEvaluationClient
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -158,6 +204,268 @@ enum PackageTarget: String, CaseIterable {
           .ActivitiesListFeatureOld
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityCreationFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels,
+          .DatabaseClient,
+          .GoalCreationFeature
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityCreationFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivityCreationFeature,
+          .DatabaseClient,
+          .GoalCreationFeatureiOS
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .DaysOfWeekGoalCreationFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels,
+          .SharedUI
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .DaysOfWeekGoalCreationFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DaysOfWeekGoalCreationFeature,
+          .SharedUI,
+          .Shared
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .EveryXDaysGoalCreationFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels,
+          .SharedUI
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .EveryXDaysGoalCreationFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .EveryXDaysGoalCreationFeature,
+          .SharedUI,
+          .Shared
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .WeeksPeriodGoalCreationFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels,
+          .SharedUI
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .WeeksPeriodGoalCreationFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .WeeksPeriodGoalCreationFeature,
+          .SharedUI,
+          .Shared
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .GoalCreationFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels,
+          .DaysOfWeekGoalCreationFeature,
+          .EveryXDaysGoalCreationFeature,
+          .WeeksPeriodGoalCreationFeature
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .GoalCreationFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .GoalCreationFeature,
+          .SharedUI,
+          .DaysOfWeekGoalCreationFeatureiOS,
+          .EveryXDaysGoalCreationFeatureiOS,
+          .WeeksPeriodGoalCreationFeatureiOS
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .CreateSessionFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .CreateSessionFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .CreateSessionFeature,
+          .SharedUI,
+          .SharedModels
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityDetailFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivityGeneralTabFeature,
+          .ActivityGoalsTabFeature,
+          .ActivitySessionsTabFeature,
+          .DatabaseClient,
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityDetailFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivityDetailFeature,
+          .ActivityGeneralTabFeatureiOS,
+          .ActivityGoalsTabFeatureiOS,
+          .ActivitySessionsTabFeatureiOS,
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityGeneralTabFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels,
+          .TagsListFeature
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityGeneralTabFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivityGeneralTabFeature,
+          .SharedModels,
+          .SharedUI,
+          .TagsListFeature,
+          .TagsListFeatureiOS
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivityGoalsTabFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels,
+          .GoalCreationFeature
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency
+        ]
+      )
+
+    case .ActivityGoalsTabFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivityGoalsTabFeature,
+          .SharedModels,
+          .SharedUI,
+          .GoalCreationFeatureiOS
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency
+        ]
+      )
+
+    case .ActivitySessionsTabFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+
+    case .ActivitySessionsTabFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .ActivitySessionsTabFeature,
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .TagsListFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels
+        ) + [
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .TagsListFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .SharedUI,
+          .TagsListFeature,
+          .SharedModels
+        ) + [
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
         ]
       )
@@ -222,6 +530,15 @@ enum PackageTarget: String, CaseIterable {
         ]
       )
 
+    case .Shared:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency
+        ]
+      )
+
     case .SharedModels:
       return createPackageTarget(
         dependencies: createTargetDependencies(
@@ -235,13 +552,35 @@ enum PackageTarget: String, CaseIterable {
     case .SharedUI:
       return createPackageTarget(
         dependencies: createTargetDependencies(
-
+          .SharedModels
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
-          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
+          PackageDependency.XCTestDynamicOverlay.Product.xcTestDynamicOverlay.targetDependency
         ],
         resources: [
           .process("Resources")
+        ]
+      )
+
+    case .AppDependenciesLive:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          // All Client targets
+          .ActivitiesStreakEvaluationClient,
+          .DatabaseClient,
+          .DatabaseClientGRDB,
+          .GoalEvaluationClient,
+          .GoalCreationClient,
+          
+          // Shared modules
+          .SharedModels,
+          .Shared,
+          .SharedUI
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
+          PackageDependency.GRDB.Product.GRDB.targetDependency
         ]
       )
 
@@ -416,8 +755,8 @@ extension PackageDependency {
 
     static var packageDependency: Package.Dependency {
       .package(
-        name: "ElixirShared",
-        path: "/Users/annguyen/Documents/2. Areas/Xcode Projects/Genesis/Packages/ElixirShared"
+        url: "file:///Users/annguyen/Documents/2. Areas/Xcode Projects/Genesis/Packages/ElixirShared",
+        branch: "main"
       )
     }
 

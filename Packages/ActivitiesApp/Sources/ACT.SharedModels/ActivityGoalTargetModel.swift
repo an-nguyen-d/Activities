@@ -1,7 +1,7 @@
 import Foundation
 import Tagged
 
-public struct ActivityGoalTargetModel: Sendable {
+public struct ActivityGoalTargetModel: Sendable, Equatable {
 
 
   public typealias ID = Tagged<(Self, id: ()), Int64>
@@ -11,14 +11,33 @@ public struct ActivityGoalTargetModel: Sendable {
   public let goalValue: Double
   public let goalSuccessCriteria: GoalSuccessCriteria
 
-  public init(
+  public init?(
     id: ID,
     goalValue: Double,
     goalSuccessCriteria: GoalSuccessCriteria
   ) {
-    assert(goalValue >= 0)
+    guard goalValue >= 0 else { return nil }
+    
+    // Validate nonsensical combinations
+    if goalValue == 0 {
+      // Only "exactly 0" makes sense - "at least 0" is always true, "less than 0" is impossible
+      guard goalSuccessCriteria == .exactly else { return nil }
+    }
+    
     self.id = id
     self.goalValue = goalValue
     self.goalSuccessCriteria = goalSuccessCriteria
+  }
+  
+  /// Validates if a value and criteria combination makes sense
+  public static func isValidCombination(value: Double, criteria: GoalSuccessCriteria) -> Bool {
+    guard value >= 0 else { return false }
+    
+    if value == 0 {
+      // Only "exactly 0" makes sense
+      return criteria == .exactly
+    }
+    
+    return true
   }
 }

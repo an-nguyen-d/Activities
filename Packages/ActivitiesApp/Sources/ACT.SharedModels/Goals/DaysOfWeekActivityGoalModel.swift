@@ -1,7 +1,7 @@
 import Foundation
 import Tagged
 
-public struct DaysOfWeekActivityGoalModel {
+public struct DaysOfWeekActivityGoalModel: Equatable {
 
   public let id: ActivityGoal.ID
 
@@ -85,8 +85,8 @@ extension DaysOfWeekActivityGoalModel: ActivityGoal.Modelling {
   public func canEvaluateStreak(forEvaluationCalendarDate evaluationCalendarDate: CalendarDate, currentCalendarDate: CalendarDate) -> Bool {
     return evaluationCalendarDate < currentCalendarDate
   }
-  public func getSessionsDateRangeForTarget(evaluationCalendarDate: CalendarDate) -> CalendarDateRange {
-    precondition(evaluationCalendarDate >= effectiveCalendarDate, "Cannot evaluate goal before its effective date")
-    return .singleDay(evaluationCalendarDate)
+  public func getSessionsDateRangeForTarget(onCalendarDate: CalendarDate) -> CalendarDateRange {
+    precondition(onCalendarDate >= effectiveCalendarDate, "Cannot evaluate goal before its effective date")
+    return .singleDay(onCalendarDate)
   }
 }

@@ -473,7 +473,7 @@ class GoalEvaluationClientTests: XCTestCase {
   // MARK: - DaysOfWeekActivityGoal Tests
   
   func test_givenDaysOfWeekActivityGoal_whenOnlyOneDayConfigured_thenEvaluatesOnlyThatDay() {
-    let goalConfig = ActivityGoalTargetModel(id: 1, goalValue: 10, goalSuccessCriteria: .atLeast)
+    let goalConfig = ActivityGoalTargetModel(id: 1, goalValue: 10, goalSuccessCriteria: .atLeast)!
 
     // Create all 7 single-day goals
     let singleDayGoals = (0..<DayOfWeek.daysPerWeek).map { targetDay in
@@ -566,21 +566,21 @@ class GoalEvaluationClientTests: XCTestCase {
       // atLeast tests
       TestCase(
         name: "atLeast 10 - under (5)",
-        config: ActivityGoalTargetModel(id: 1, goalValue: 10, goalSuccessCriteria: .atLeast),
+        config: ActivityGoalTargetModel(id: 1, goalValue: 10, goalSuccessCriteria: .atLeast)!,
         totalValue: 5,
         expectedToday: .incomplete,
         expectedYesterday: .failure
       ),
       TestCase(
         name: "atLeast 10 - exact (10)",
-        config: ActivityGoalTargetModel(id: 2, goalValue: 10, goalSuccessCriteria: .atLeast),
+        config: ActivityGoalTargetModel(id: 2, goalValue: 10, goalSuccessCriteria: .atLeast)!,
         totalValue: 10,
         expectedToday: .success,
         expectedYesterday: .success
       ),
       TestCase(
         name: "atLeast 10 - over (15)",
-        config: ActivityGoalTargetModel(id: 3, goalValue: 10, goalSuccessCriteria: .atLeast),
+        config: ActivityGoalTargetModel(id: 3, goalValue: 10, goalSuccessCriteria: .atLeast)!,
         totalValue: 15,
         expectedToday: .success,
         expectedYesterday: .success
@@ -589,21 +589,21 @@ class GoalEvaluationClientTests: XCTestCase {
       // exactly tests
       TestCase(
         name: "exactly 10 - under (5)",
-        config: ActivityGoalTargetModel(id: 4, goalValue: 10, goalSuccessCriteria: .exactly),
+        config: ActivityGoalTargetModel(id: 4, goalValue: 10, goalSuccessCriteria: .exactly)!,
         totalValue: 5,
         expectedToday: .incomplete,
         expectedYesterday: .failure
       ),
       TestCase(
         name: "exactly 10 - exact (10)",
-        config: ActivityGoalTargetModel(id: 5, goalValue: 10, goalSuccessCriteria: .exactly),
+        config: ActivityGoalTargetModel(id: 5, goalValue: 10, goalSuccessCriteria: .exactly)!,
         totalValue: 10,
         expectedToday: .success,
         expectedYesterday: .success
       ),
       TestCase(
         name: "exactly 10 - over (15)",
-        config: ActivityGoalTargetModel(id: 6, goalValue: 10, goalSuccessCriteria: .exactly),
+        config: ActivityGoalTargetModel(id: 6, goalValue: 10, goalSuccessCriteria: .exactly)!,
         totalValue: 15,
         expectedToday: .failure,
         expectedYesterday: .failure
@@ -612,21 +612,21 @@ class GoalEvaluationClientTests: XCTestCase {
       // lessThan tests
       TestCase(
         name: "lessThan 10 - under (5)",
-        config: ActivityGoalTargetModel(id: 7, goalValue: 10, goalSuccessCriteria: .lessThan),
+        config: ActivityGoalTargetModel(id: 7, goalValue: 10, goalSuccessCriteria: .lessThan)!,
         totalValue: 5,
         expectedToday: .incomplete,
         expectedYesterday: .success
       ),
       TestCase(
         name: "lessThan 10 - exact (10)",
-        config: ActivityGoalTargetModel(id: 8, goalValue: 10, goalSuccessCriteria: .lessThan),
+        config: ActivityGoalTargetModel(id: 8, goalValue: 10, goalSuccessCriteria: .lessThan)!,
         totalValue: 10,
         expectedToday: .failure,
         expectedYesterday: .failure
       ),
       TestCase(
         name: "lessThan 10 - over (15)",
-        config: ActivityGoalTargetModel(id: 9, goalValue: 10, goalSuccessCriteria: .lessThan),
+        config: ActivityGoalTargetModel(id: 9, goalValue: 10, goalSuccessCriteria: .lessThan)!,
         totalValue: 15,
         expectedToday: .failure,
         expectedYesterday: .failure
@@ -688,7 +688,7 @@ class GoalEvaluationClientTests: XCTestCase {
   
   func test_givenDaysOfWeekActivityGoal_whenWeeksInterval2_thenEvaluatesEveryOtherWeek() {
     // Given - Sunday-only goal that repeats every 2 weeks
-    let goalConfig = ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)
+    let goalConfig = ActivityGoalTargetModel(id: 1, goalValue: 30, goalSuccessCriteria: .atLeast)!
 
     let goal = DaysOfWeekActivityGoalModel.singleDayGoal(
       day: .sunday,
@@ -993,4 +993,57 @@ class GoalEvaluationClientTests: XCTestCase {
     )
   }
   
+}
+
+
+extension EveryXDaysActivityGoalModel {
+
+  init(
+    id: ActivityGoal.ID,
+    createDate: Date,
+    effectiveCalendarDate: CalendarDate,
+    daysInterval: Int,
+    goalID: ActivityGoalTargetModel.ID,
+    goalValue: Double,
+    goalSuccessCriteria: GoalSuccessCriteria
+  ) {
+    self.init(
+      id: id,
+      createDate: createDate,
+      effectiveCalendarDate: effectiveCalendarDate,
+      daysInterval: daysInterval,
+      target: ActivityGoalTargetModel(
+        id: goalID,
+        goalValue: goalValue,
+        goalSuccessCriteria: goalSuccessCriteria
+      )!
+    )
+  }
+
+}
+
+extension WeeksPeriodActivityGoalModel {
+
+  public init(
+    id: ActivityGoal.ID,
+    createDate: Date,
+    effectiveCalendarDate: CalendarDate,
+    goalID: ActivityGoalTargetModel.ID,
+    goalValue: Double,
+    goalSuccessCriteria: GoalSuccessCriteria
+  ) {
+    assert(effectiveCalendarDate.dayOfWeek() == Global.startingDayOfWeek)
+
+    self.init(
+      id: id,
+      createDate: createDate,
+      effectiveCalendarDate: effectiveCalendarDate,
+      target: ActivityGoalTargetModel(
+        id: goalID,
+        goalValue: goalValue,
+        goalSuccessCriteria: goalSuccessCriteria
+      )!
+    )
+  }
+
 }

@@ -26,7 +26,7 @@ final class ActivitiesStreakEvaluationClientTests: XCTestCase {
   lazy var client = ActivitiesStreakEvaluationClient(
     dateMaker: .liveValue,
     timeZone: .autoupdatingCurrent,
-    databaseClient: try! .grdbValue(
+    databaseClient: .grdbValue(
       dateMaker: .liveValue,
       timeZone: .autoupdatingCurrent,
       configuration: .inMemory

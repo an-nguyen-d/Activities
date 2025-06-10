@@ -33,7 +33,7 @@ public enum CalendarDateRange: Sendable {
   }
 }
 
-public struct CalendarDate: Equatable, Comparable, Sendable {
+public struct CalendarDate: Equatable, Comparable, Sendable, Hashable {
   public let value: String
 
   private static let format = "yyyy-MM-dd"

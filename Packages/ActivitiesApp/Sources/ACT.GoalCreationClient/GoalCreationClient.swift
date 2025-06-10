@@ -1,7 +1,7 @@
 import Foundation
 import ACT_SharedModels
 
-public struct GoalCreationClient {
+public struct GoalCreationClient: Sendable {
 
   public enum GoalType: Sendable {
     case everyXDays

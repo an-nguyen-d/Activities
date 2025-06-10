@@ -10,10 +10,12 @@ extension DatabaseClient {
     .init(
       fetchOrCreateAppState: { _ in fatalError() },
       updateAppState: { _ in fatalError() },
+      createActivityWithGoal: { _ in fatalError() },
       createActivity: { _ in fatalError() },
       fetchActivity: { _ in fatalError() },
       fetchActivitiesNeedingEvaluation: { _ in fatalError() },
       updateActivity: { _ in fatalError() },
+      deleteActivity: { _ in fatalError() },
       observeActivity: { _ in 
         AsyncThrowingStream { continuation in
           continuation.finish()
@@ -40,6 +42,7 @@ extension DatabaseClient {
       createDaysOfWeekGoal: { _ in fatalError() },
       createWeeksPeriodGoal: { _ in fatalError() },
       fetchEffectiveGoal: { _ in fatalError() },
+      deleteGoal: { _ in fatalError() },
       fetchActivityGoal: { _ in fatalError() },
       createSession: { _ in fatalError() },
       fetchSessionsTotalValue: { _ in fatalError() }

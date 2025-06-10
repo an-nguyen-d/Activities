@@ -1,4 +1,4 @@
-public enum GoalStatus: Equatable {
+public enum GoalStatus: Equatable, Sendable {
   case skip
   case incomplete
   case failure

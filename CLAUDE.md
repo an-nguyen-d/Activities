@@ -24,6 +24,51 @@ This is an iOS app built with The Composable Architecture (TCA), featuring a mod
 - **Streaks**: Automatic calculation based on goal completion
 - **Success Criteria**: "at least", "exactly", "less than" goals
 
+## UI Architecture & Styling Principles
+
+### View Construction Pattern
+All iOS feature views should follow the pattern established in `ActivityCreationView`:
+
+1. **Inherit from BaseView** (from ElixirShared):
+   ```swift
+   final class MyFeatureView: BaseView { ... }
+   ```
+
+2. **Use updateObject for inline configuration**:
+   ```swift
+   private let myLabel = updateObject(UILabel()) {
+       $0.text = "SECTION TITLE"
+       $0.font = .systemFont(ofSize: 12, weight: .regular)
+       $0.textColor = .secondaryLabel
+   }
+   ```
+
+3. **Override setupView() and setupSubviews()**:
+   - `setupView()`: Configure view properties
+   - `setupSubviews()`: Add subviews and constraints using ElixirShared utilities
+
+4. **Use ElixirShared Layout Utilities**:
+   - `addSubviews()`: Add multiple subviews at once
+   - `fillView()`: Constraint view to fill superview
+   - `anchor()`: Convenient Auto Layout API
+
+### Consistent Styling
+- **Section Headers**: All caps, 12pt regular font, `.secondaryLabel` color
+- **Body Text**: `.preferredFont(forTextStyle: .body)`, `.View.Text.primary` color
+- **Interactive Elements**: `.peterRiver` color for buttons and links
+- **Spacing**: 24pt between sections, 20pt padding from edges
+- **Background**: `.View.Background.primary` (black)
+
+### UI Component Patterns
+- **Scroll Views**: Use for all content that might overflow
+- **Stack Views**: Vertical stacks with 24pt spacing for main content layout
+- **Buttons**: 
+  - **ALWAYS use BaseButton** instead of UIButton
+  - Set tap handlers using `button.onTapHandler = { }` instead of `addTarget`
+  - For text buttons: Set `.peterRiver` tint color
+  - For primary action buttons: Set `.peterRiver` background with white text
+- **Collection Views**: For dynamic content like tags with flow layout
+
 ## Common Development Commands
 
 ### Build Commands
@@ -97,3 +142,163 @@ git push
 - **Swift 6.1**: Latest Swift version with strict concurrency
 - **Database**: GRDB 7.5.0 for SQLite persistence
 - **Dependencies**: TCA 1.20.2, swift-tagged, ElixirShared (local package)
+
+## iOS View Controller Architecture Guidelines
+
+When creating new ViewControllers in the iOS feature targets, follow these critical patterns:
+
+### 1. Separate View Code
+- **View code belongs in a dedicated View class**, NOT in the ViewController
+- Create a separate `YourFeatureView` class that inherits from `BaseView` (from ElixirShared)
+- The ViewController should only have a `contentView` property of this type
+- Use `loadView()` to set `view = contentView`
+
+### 2. Use updateObject Pattern
+- Views should expose an `updateObject` method for configuration
+- Define a nested `Object` struct in the View with all configurable properties
+- The ViewController's `observeStore()` method creates this Object and calls `updateObject`
+- This keeps view configuration logic separate and testable
+
+### 3. Use BaseButton, Not UIButton
+- **ALWAYS use BaseButton** from SharedUI instead of UIButton
+- Configure buttons with `onTapHandler` closure in the VC's `bindView()` method
+- Do NOT use target/action pattern with `@objc` methods for BaseButton
+- Example:
+  ```swift
+  contentView.myButton.onTapHandler = { [weak self] in
+    self?.store.send(.view(.buttonTapped))
+  }
+  ```
+
+### 4. Standard ViewController Structure
+```swift
+public final class YourFeatureVC: BaseViewController {
+  // MARK: - Types
+  public typealias Module = YourFeature
+  private typealias View = YourFeatureView
+  public typealias Dependencies = Module.Dependencies
+  
+  // MARK: - Properties
+  private let contentView = View()
+  private let store: StoreOf<Module>
+  private var router: YourFeatureRouter!
+  
+  // MARK: - Init
+  public init(store: StoreOf<Module>, dependencies: Dependencies) {
+    self.store = store
+    super.init()
+    self.router = YourFeatureRouter(
+      viewController: self,
+      store: store,
+      dependencies: dependencies
+    )
+  }
+  
+  // MARK: - Lifecycle
+  public override func loadView() {
+    view = contentView
+  }
+  
+  public override func viewDidLoad() {
+    super.viewDidLoad()
+    observeStore()
+    bindView()
+  }
+  
+  // MARK: - Store Observation
+  private func observeStore() {
+    observe { [weak self] in
+      guard let self = self else { return }
+      let object = View.Object(/* configure from store state */)
+      contentView.updateObject(object)
+    }
+  }
+  
+  // MARK: - Bind View
+  private func bindView() {
+    // Set onTapHandler for BaseButtons here
+  }
+}
+```
+
+## iOS Routing Pattern
+
+When creating routers for iOS view controllers, always follow this pattern:
+
+```swift
+@MainActor
+final class SomeRouter {
+  
+  public typealias Module = SomeFeature
+  public typealias Dependencies = Module.Dependencies
+  
+  weak var viewController: UIViewController?
+  
+  @UIBindable
+  private var store: StoreOf<Module>
+  
+  private let dependencies: Dependencies
+  
+  init(
+    viewController: UIViewController,
+    store: StoreOf<Module>,
+    dependencies: Dependencies
+  ) {
+    self.viewController = viewController
+    self.store = store
+    self.dependencies = dependencies
+    bindRouting()
+  }
+  
+  private func bindRouting() {
+    viewController?.present(
+      item: $store.scope(
+        state: \.destination?.someDestination,
+        action: \.destination.someDestination
+      )
+    ) { [dependencies] store in
+      let viewController = SomeVC(
+        store: store,
+        dependencies: dependencies
+      )
+      // Configure presentation style if needed
+      return viewController
+    }
+  }
+}
+```
+
+Key points:
+- Always use `@MainActor` on the router class
+- Use `@UIBindable` for the store property
+- Use `viewController?.present(item:)` with `$store.scope()` binding
+- No manual observation or state checking needed
+- The `present(item:)` API handles presentation/dismissal automatically
+
+## Known Database Design Issues
+
+### ActivityGoalTargetRecord Foreign Key Direction (as of Jan 2025)
+
+**Current Issue**: The foreign key relationships between goal tables and ActivityGoalTargetRecord are backwards.
+- Parent tables (EveryXDaysActivityGoalRecord, etc.) reference ActivityGoalTargetRecord with `onDelete: .cascade`
+- This means deleting a target would cascade UP and delete the parent (dangerous!)
+- Deleting a parent leaves orphaned targets
+
+**Current Solution**: Manual cleanup when deleting goals (see `deleteGoalWithTargets` in DatabaseClient+GRDB)
+
+**Proper Fix Options** (for future migration):
+
+1. **Reverse Foreign Keys** (recommended):
+   - Add parent ID columns to ActivityGoalTargetRecord (everyXDaysGoalId, weeksPeriodGoalId, daysOfWeekGoalTargetId)
+   - Add foreign key constraints with `onDelete: .cascade` on these columns
+   - Remove targetId from parent tables
+   - Ensures exactly one parent reference is non-null
+
+2. **Database Triggers**:
+   - Add SQLite triggers to automatically delete targets when parents are deleted
+   - Example: `CREATE TRIGGER delete_target_on_everyxdays_delete AFTER DELETE ON everyXDaysActivityGoalRecord BEGIN DELETE FROM activityGoalTargetRecord WHERE id = OLD.targetId; END;`
+
+3. **Embed Target Data** (simplest long-term):
+   - Since targets are never shared, embed goalValue and goalSuccessCriteria directly in parent tables
+   - Eliminates the ActivityGoalTargetRecord table entirely
+   - Removes the orphan problem completely

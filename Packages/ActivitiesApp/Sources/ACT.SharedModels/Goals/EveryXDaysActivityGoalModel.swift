@@ -1,7 +1,7 @@
 import Foundation
 import Tagged
 
-public struct EveryXDaysActivityGoalModel {
+public struct EveryXDaysActivityGoalModel: Equatable {
 
   public let id: ActivityGoal.ID
 
@@ -32,29 +32,6 @@ public struct EveryXDaysActivityGoalModel {
     self.target = target
   }
 
-  // Convenience init for backward compatibility
-  public init(
-    id: ActivityGoal.ID,
-    createDate: Date,
-    effectiveCalendarDate: CalendarDate,
-    daysInterval: Int,
-    goalID: ActivityGoalTargetModel.ID,
-    goalValue: Double,
-    goalSuccessCriteria: GoalSuccessCriteria
-  ) {
-    self.init(
-      id: id,
-      createDate: createDate,
-      effectiveCalendarDate: effectiveCalendarDate,
-      daysInterval: daysInterval,
-      target: ActivityGoalTargetModel(
-        id: goalID,
-        goalValue: goalValue,
-        goalSuccessCriteria: goalSuccessCriteria
-      )
-    )
-  }
-
 }
 
 extension EveryXDaysActivityGoalModel: ActivityGoal.Modelling {
@@ -74,8 +51,8 @@ extension EveryXDaysActivityGoalModel: ActivityGoal.Modelling {
   public func canEvaluateStreak(forEvaluationCalendarDate evaluationCalendarDate: CalendarDate, currentCalendarDate: CalendarDate) -> Bool {
     return evaluationCalendarDate < currentCalendarDate
   }
-  public func getSessionsDateRangeForTarget(evaluationCalendarDate: CalendarDate) -> CalendarDateRange {
-    precondition(evaluationCalendarDate >= effectiveCalendarDate, "Cannot evaluate goal before its effective date")
-    return .singleDay(evaluationCalendarDate)
+  public func getSessionsDateRangeForTarget(onCalendarDate: CalendarDate) -> CalendarDateRange {
+    precondition(onCalendarDate >= effectiveCalendarDate, "Cannot evaluate goal before its effective date")
+    return .singleDay(onCalendarDate)
   }
 }

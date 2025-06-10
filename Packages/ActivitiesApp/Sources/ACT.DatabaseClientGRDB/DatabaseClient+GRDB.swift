@@ -4,7 +4,7 @@ import ElixirShared
 import GRDB
 import Foundation
 
-public enum DatabaseConfiguration {
+public enum DatabaseConfiguration: Sendable {
   case inMemory
   case file(path: String)
 }
@@ -20,15 +20,20 @@ private extension DatabaseConfiguration {
   }
 }
 
-
 extension DatabaseClient {
 
   public static func grdbValue(
     dateMaker: DateMaker,
     timeZone: TimeZone,
     configuration: DatabaseConfiguration
-  ) throws -> Self {
-    let dbQueue = try DatabaseQueue(path: configuration.dbPath)
+  ) -> DatabaseClient {
+
+    let dbQueue: DatabaseQueue
+    do {
+      dbQueue = try DatabaseQueue(path: configuration.dbPath)
+    } catch {
+      fatalError(error.localizedDescription)
+    }
 
     // Run migrations
     var migrator = DatabaseMigrator()
@@ -159,7 +164,11 @@ extension DatabaseClient {
 
 
 
-    try migrator.migrate(dbQueue)
+    do {
+      try migrator.migrate(dbQueue)
+    } catch {
+      assertionFailure(error.localizedDescription)
+    }
 
     return .init(
 
@@ -205,33 +214,28 @@ extension DatabaseClient {
 
       },
 
+      createActivityWithGoal: { request in
+        try await dbQueue.write { db in
+          // Create activity first
+          let activity = try createActivity(db: db, request: request.activity)
+          
+          // Then create the goal
+          switch request.goal {
+          case let .everyXDays(goalRequest):
+            _ = try createEveryXDaysGoal(db: db, request: goalRequest)
+          case let .daysOfWeek(goalRequest):
+            _ = try createDaysOfWeekGoal(db: db, request: goalRequest)
+          case let .weeksPeriod(goalRequest):
+            _ = try createWeeksPeriodGoal(db: db, request: goalRequest)
+          }
+          
+          return activity
+        }
+      },
+
       createActivity: { request in
         try await dbQueue.write { db in
-
-
-          let (sessionUnitType, sessionUnitName): (ActivityRecord.SessionUnitType, String?) = {
-            switch request.sessionUnit {
-            case let .integer(unit):
-              return (.integer, unit)
-            case let .floating(unit):
-              return (.floating, unit)
-            case .seconds:
-              return (.seconds, nil)
-            }
-          }()
-
-          var record = ActivityRecord(
-            id: request.id.rawValue,
-            activityName: request.activityName,
-            sessionUnitType: sessionUnitType,
-            sessionUnitName: sessionUnitName,
-            currentStreakCount: request.currentStreakCount,
-            lastGoalSuccessCheckCalendarDate: request.lastGoalSuccessCheckCalendarDate?.value
-          )
-          try record.insert(db)
-
-          let model = GRDBMapper.MapActivity.toModel(from: record)
-          return model
+          try createActivity(db: db, request: request)
         }
       },
 
@@ -307,6 +311,23 @@ extension DatabaseClient {
           try activityRecord.save(db)
         }
 
+      },
+
+      deleteActivity: { request in
+        try await dbQueue.write { db in
+          // First, fetch all goals for this activity
+          let goalRecords = try GoalRecord
+            .filter(Column("activityId") == request.id.rawValue)
+            .fetchAll(db)
+          
+          // Delete each goal with its targets
+          for goalRecord in goalRecords {
+            try deleteGoalWithTargets(db: db, goalId: goalRecord.id!)
+          }
+          
+          // Delete the activity (this cascades to sessions and tag links)
+          try ActivityRecord.deleteOne(db, key: request.id.rawValue)
+        }
       },
 
       observeActivity: { request in
@@ -390,7 +411,7 @@ extension DatabaseClient {
         AsyncThrowingStream { continuation in
           Task { @MainActor in
             let observation = ValueObservation
-              .tracking { db -> [any ActivityGoal.Modelling] in
+              .tracking { db -> [ActivityGoalType] in
                 let goalRecords = try goalRecordsQuery(for: request.activityId.rawValue)
                   .fetchAll(db)
                 
@@ -524,17 +545,20 @@ extension DatabaseClient {
       createGoalReplacingExisting: { request in
 
         try await dbQueue.write { db in
-          let newGoal: (any ActivityGoal.Modelling)
+          let newGoal: ActivityGoalType
 
           switch request.goalCreationType {
           case .everyXDays(let createRequest):
-            newGoal = try createEveryXDaysGoal(db: db, request: createRequest)
+            let model = try createEveryXDaysGoal(db: db, request: createRequest)
+            newGoal = .everyXDays(model)
 
           case .daysOfWeek(let createRequest):
-            newGoal = try createDaysOfWeekGoal(db: db, request: createRequest)
+            let model = try createDaysOfWeekGoal(db: db, request: createRequest)
+            newGoal = .daysOfWeek(model)
 
           case .weeksPeriod(let createRequest):
-            newGoal = try createWeeksPeriodGoal(db: db, request: createRequest)
+            let model = try createWeeksPeriodGoal(db: db, request: createRequest)
+            newGoal = .weeksPeriod(model)
           }
           
           // Then delete the existing goal
@@ -595,6 +619,12 @@ extension DatabaseClient {
           return try fetchGoalModel(from: goalRecord, db: db)
         }
 
+      },
+
+      deleteGoal: { request in
+        try await dbQueue.write { db in
+          try deleteGoalWithTargets(db: db, goalId: request.id.rawValue)
+        }
       },
 
       fetchActivityGoal: { request in
@@ -673,6 +703,64 @@ extension DatabaseClient {
     )
   }
 
+  /// Deletes a goal and all associated ActivityGoalTargetRecords.
+  /// 
+  /// IMPORTANT: This manual cleanup is required because the foreign key relationship
+  /// between goal tables and ActivityGoalTargetRecord is backwards. The parent tables
+  /// (EveryXDaysActivityGoalRecord, etc.) reference ActivityGoalTargetRecord with 
+  /// onDelete: .cascade, which means:
+  /// - Deleting a target cascades UP and deletes the parent (dangerous!)
+  /// - Deleting a parent leaves orphaned targets (what we're cleaning up here)
+  ///
+  /// See CLAUDE.md for proper fix options in future migrations.
+  private static func deleteGoalWithTargets(db: Database, goalId: Int64) throws {
+    // First, fetch the goal to determine its type
+    guard let goalRecord = try GoalRecord.fetchOne(db, key: goalId) else {
+      assertionFailure("Attempting to delete non-existent goal with id \(goalId)")
+      return
+    }
+    
+    // Collect target IDs that need to be deleted based on goal type
+    var targetIdsToDelete: [Int64] = []
+    
+    switch goalRecord.goalType {
+    case .everyXDays:
+      if let everyXDaysRecord = try EveryXDaysActivityGoalRecord
+        .filter(Column("goalId") == goalId)
+        .fetchOne(db) {
+        targetIdsToDelete.append(everyXDaysRecord.targetId)
+      }
+      
+    case .daysOfWeek:
+      if let daysOfWeekRecord = try DaysOfWeekActivityGoalRecord
+        .filter(Column("goalId") == goalId)
+        .fetchOne(db) {
+        // Get all targets from the join table
+        let dayTargets = try DaysOfWeekGoalTargetRecord
+          .filter(Column("daysOfWeekGoalId") == daysOfWeekRecord.id!)
+          .fetchAll(db)
+        targetIdsToDelete.append(contentsOf: dayTargets.map { $0.targetId })
+      }
+      
+    case .weeksPeriod:
+      if let weeksPeriodRecord = try WeeksPeriodActivityGoalRecord
+        .filter(Column("goalId") == goalId)
+        .fetchOne(db) {
+        targetIdsToDelete.append(weeksPeriodRecord.targetId)
+      }
+    }
+    
+    // Delete the goal (this cascades to goal-specific tables)
+    try GoalRecord.deleteOne(db, key: goalId)
+    
+    // Manually delete the orphaned ActivityGoalTargetRecords
+    if !targetIdsToDelete.isEmpty {
+      try ActivityGoalTargetRecord
+        .filter(targetIdsToDelete.contains(Column("id")))
+        .deleteAll(db)
+    }
+  }
+
   /// Returns goal records for an activity, sorted by effectiveCalendarDate descending (latest first)
   private static func goalRecordsQuery(for activityId: Int64) -> QueryInterfaceRequest<GoalRecord> {
     return GoalRecord
@@ -680,7 +768,7 @@ extension DatabaseClient {
       .order(Column("effectiveCalendarDate").desc)
   }
 
-  private static func fetchGoalModel(from goalRecord: GoalRecord, db: Database) throws -> (any ActivityGoal.Modelling)? {
+  private static func fetchGoalModel(from goalRecord: GoalRecord, db: Database) throws -> ActivityGoalType? {
     switch goalRecord.goalType {
     case .everyXDays:
       guard let everyXDaysRecord = try EveryXDaysActivityGoalRecord
@@ -697,11 +785,15 @@ extension DatabaseClient {
         return nil
       }
 
-      return GRDBMapper.MapGoal.toEveryXDaysModel(
+      guard let model = GRDBMapper.MapGoal.toEveryXDaysModel(
         from: goalRecord,
         everyXDaysRecord: everyXDaysRecord,
         targetRecord: targetRecord
-      )
+      ) else {
+        assertionFailure("Failed to map EveryXDaysActivityGoalModel")
+        return nil
+      }
+      return .everyXDays(model)
 
     case .daysOfWeek:
       guard let daysOfWeekRecord = try DaysOfWeekActivityGoalRecord
@@ -716,11 +808,12 @@ extension DatabaseClient {
         .fetchAll(db)
 
       guard !dayTargetRecords.isEmpty else {
-        return GRDBMapper.MapGoal.toDaysOfWeekModel(
+        let model = GRDBMapper.MapGoal.toDaysOfWeekModel(
           from: goalRecord,
           daysOfWeekRecord: daysOfWeekRecord,
           daysOfWeekTargets: []
         )
+        return .daysOfWeek(model)
       }
 
       let targetIds = dayTargetRecords.map { $0.targetId }
@@ -739,11 +832,12 @@ extension DatabaseClient {
         daysOfWeekTargets.append((dayOfWeek: dayTargetRecord.dayOfWeek, target: targetRecord))
       }
 
-      return GRDBMapper.MapGoal.toDaysOfWeekModel(
+      let model = GRDBMapper.MapGoal.toDaysOfWeekModel(
         from: goalRecord,
         daysOfWeekRecord: daysOfWeekRecord,
         daysOfWeekTargets: daysOfWeekTargets
       )
+      return .daysOfWeek(model)
 
     case .weeksPeriod:
       guard let weeksPeriodRecord = try WeeksPeriodActivityGoalRecord
@@ -760,12 +854,45 @@ extension DatabaseClient {
         return nil
       }
 
-      return GRDBMapper.MapGoal.toWeeksPeriodModel(
+      guard let model = GRDBMapper.MapGoal.toWeeksPeriodModel(
         from: goalRecord,
         weeksPeriodRecord: weeksPeriodRecord,
         targetRecord: targetRecord
-      )
+      ) else {
+        assertionFailure("Failed to map WeeksPeriodActivityGoalModel")
+        return nil
+      }
+      return .weeksPeriod(model)
     }
+  }
+
+  private static func createActivity(
+    db: Database,
+    request: CreateActivity.Request
+  ) throws -> CreateActivity.Response {
+    let (sessionUnitType, sessionUnitName): (ActivityRecord.SessionUnitType, String?) = {
+      switch request.sessionUnit {
+      case let .integer(unit):
+        return (.integer, unit)
+      case let .floating(unit):
+        return (.floating, unit)
+      case .seconds:
+        return (.seconds, nil)
+      }
+    }()
+
+    var record = ActivityRecord(
+      id: request.id.rawValue,
+      activityName: request.activityName,
+      sessionUnitType: sessionUnitType,
+      sessionUnitName: sessionUnitName,
+      currentStreakCount: request.currentStreakCount,
+      lastGoalSuccessCheckCalendarDate: request.lastGoalSuccessCheckCalendarDate?.value
+    )
+    try record.insert(db)
+
+    let model = GRDBMapper.MapActivity.toModel(from: record)
+    return model
   }
 
   private static func createWeeksPeriodGoal(
@@ -836,7 +963,7 @@ extension DatabaseClient {
     // 3. Insert targets and join records for each day that has a goal
     var daysOfWeekTargets: [(dayOfWeek: Int, target: ActivityGoalTargetRecord)] = []
 
-    let daysAndGoals: [(DayOfWeek, ActivityGoalTargetModel?)] = [
+    let daysAndGoals: [(DayOfWeek, DatabaseClient.CreateActivityGoalTarget.Request?)] = [
       (.sunday, request.sundayGoal),
       (.monday, request.mondayGoal),
       (.tuesday, request.tuesdayGoal),

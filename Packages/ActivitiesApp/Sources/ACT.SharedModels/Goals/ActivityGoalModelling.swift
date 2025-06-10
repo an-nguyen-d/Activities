@@ -25,14 +25,14 @@ extension ActivityGoal {
     /// For period goals: Can evaluate if the period containing evaluationCalendarDate is complete
     func canEvaluateStreak(forEvaluationCalendarDate evaluationCalendarDate: CalendarDate, currentCalendarDate: CalendarDate) -> Bool
 
-    /// Returns the date range where sessions count toward the goal target for the given evaluation date.
+    /// Returns the date range where sessions count toward the goal target that is active on the given date.
     ///
     /// - Note: This method returns a valid date range even for skip days (days where `getGoalTarget` returns nil).
     ///         Callers should check `getGoalTarget` first to determine if evaluation is needed.
     ///         The separation allows for consistent date range calculation regardless of skip patterns.
     ///
-    /// - Precondition: evaluationCalendarDate >= effectiveCalendarDate
-    func getSessionsDateRangeForTarget(evaluationCalendarDate: CalendarDate) -> CalendarDateRange
+    /// - Precondition: onCalendarDate >= effectiveCalendarDate
+    func getSessionsDateRangeForTarget(onCalendarDate: CalendarDate) -> CalendarDateRange
 
   }
 

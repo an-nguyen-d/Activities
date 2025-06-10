@@ -1,6 +1,9 @@
 import UIKit
 import ComposableArchitecture
 import ACT_ActivitiesListFeature
+import ACT_ActivityCreationFeatureiOS
+import ACT_CreateSessionFeatureiOS
+import ACT_ActivityDetailFeatureiOS
 
 @MainActor
 final class ActivitiesListRouter {
@@ -27,7 +30,46 @@ final class ActivitiesListRouter {
   }
 
   private func bindRouting() {
-
+    viewController?.present(
+      item: $store.scope(
+        state: \.destination?.activityCreation,
+        action: \.destination.activityCreation
+      )
+    ) { [dependencies] store in
+      let activityCreationVC = ActivityCreationVC(
+        store: store,
+        dependencies: dependencies
+      )
+      return UINavigationController(rootViewController: activityCreationVC)
+    }
+    
+    viewController?.present(
+      item: $store.scope(
+        state: \.destination?.createSession,
+        action: \.destination.createSession
+      )
+    ) { [dependencies] store in
+      let createSessionVC = CreateSessionVC(
+        store: store,
+        dependencies: dependencies
+      )
+      return UINavigationController(rootViewController: createSessionVC)
+    }
+    
+    viewController?.present(
+      item: $store.scope(
+        state: \.destination?.activityDetail,
+        action: \.destination.activityDetail
+      )
+    ) { [dependencies] store in
+      let activityDetailVC = ActivityDetailVC(
+        store: store,
+        dependencies: dependencies
+      )
+      let navController = UINavigationController(rootViewController: activityDetailVC)
+      navController.modalPresentationStyle = .fullScreen
+      return navController
+    }
   }
 
 }

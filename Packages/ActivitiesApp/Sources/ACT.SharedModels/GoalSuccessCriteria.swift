@@ -5,6 +5,14 @@ public enum GoalSuccessCriteria: String, Sendable {
 }
 
 extension GoalSuccessCriteria {
+  public var displayName: String {
+    switch self {
+    case .atLeast: return "At least"
+    case .exactly: return "Exactly"
+    case .lessThan: return "Less than"
+    }
+  }
+  
   public func evaluate(
     totalValue: Double,
     goalValue: Double,

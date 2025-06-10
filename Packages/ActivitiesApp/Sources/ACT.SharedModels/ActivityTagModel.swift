@@ -1,7 +1,7 @@
 import Foundation
 import Tagged
 
-public struct ActivityTagModel: Sendable, Equatable {
+public struct ActivityTagModel: Sendable, Equatable, Identifiable {
   public typealias ID = Tagged<(Self, id: ()), Int64>
 
   public let id: ID

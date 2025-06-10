@@ -77,8 +77,7 @@ final class ActivitiesStreakEvaluationIntegrationTests: XCTestCase {
       createDate: effectiveCalendarDate.date(timeZone: timeZone),
       effectiveCalendarDate: effectiveCalendarDate,
       daysInterval: 1,
-      target: .init(
-        id: .init(rawValue: Int64.random(in: 1...10000)),
+      target: DatabaseClient.CreateActivityGoalTarget.Request(
         goalValue: targetMinutes,
         goalSuccessCriteria: .atLeast
       )
@@ -96,8 +95,7 @@ final class ActivitiesStreakEvaluationIntegrationTests: XCTestCase {
       createDate: effectiveCalendarDate.date(timeZone: timeZone),
       effectiveCalendarDate: effectiveCalendarDate,
       daysInterval: everyXDays,
-      target: .init(
-        id: .init(rawValue: Int64.random(in: 1...10000)),
+      target: DatabaseClient.CreateActivityGoalTarget.Request(
         goalValue: targetMinutes,
         goalSuccessCriteria: .atLeast
       )
@@ -114,8 +112,7 @@ final class ActivitiesStreakEvaluationIntegrationTests: XCTestCase {
       activityId: activityId,
       createDate: effectiveMondayCalendarDate.date(timeZone: timeZone),
       effectiveCalendarDate: effectiveMondayCalendarDate,
-      target: .init(
-        id: .init(rawValue: Int64.random(in: 1...10000)),
+      target: DatabaseClient.CreateActivityGoalTarget.Request(
         goalValue: targetMinutes,
         goalSuccessCriteria: .atLeast
       )
