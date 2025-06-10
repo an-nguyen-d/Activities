@@ -11,6 +11,7 @@ public class ActivityGoalsTabVC: UIViewController {
   private let goalsTabView = ActivityGoalsTabView()
   private var goalsManager: GoalsCollection.Manager!
   private let dependencies: ActivityGoalsTabFeature.Dependencies
+  private var router: ActivityGoalsTabRouter!
   
   public init(
     store: StoreOf<ActivityGoalsTabFeature>,
@@ -32,8 +33,17 @@ public class ActivityGoalsTabVC: UIViewController {
     
     setupUI()
     setupGoalsManager()
+    setupRouter()
     bindActions()
     observeGoals()
+  }
+  
+  private func setupRouter() {
+    router = ActivityGoalsTabRouter(
+      viewController: self,
+      store: store,
+      dependencies: dependencies
+    )
   }
   
   public override func viewWillAppear(_ animated: Bool) {

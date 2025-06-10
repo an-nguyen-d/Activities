@@ -3,17 +3,14 @@ import ComposableArchitecture
 import ElixirShared
 import ACT_SharedModels
 import ACT_DatabaseClient
-import ACT_DaysOfWeekGoalCreationFeature
-import ACT_EveryXDaysGoalCreationFeature
-import ACT_WeeksPeriodGoalCreationFeature
+import ACT_GoalCreationFeature
 
 @Reducer
 public struct ActivityCreationFeature {
 
-  public typealias Dependencies =
-  HasDatabaseClient &
-  HasDateMaker &
-  HasTimeZone
+  // MARK: - Dependencies
+  
+  public typealias Dependencies = HasDatabaseClient & HasDateMaker & HasTimeZone
 
   private let dependencies: Dependencies
   private var databaseClient: DatabaseClient { dependencies.databaseClient }
@@ -24,6 +21,8 @@ public struct ActivityCreationFeature {
     self.dependencies = dependencies
   }
 
+  // MARK: - State
+  
   @ObservableState
   public struct State: Equatable {
     public var activityName: String = ""
@@ -60,31 +59,18 @@ public struct ActivityCreationFeature {
     public init() {}
   }
   
-  public enum GoalSelectionAction: Equatable {
-    case daysOfWeek
-    case everyXDays
-    case weeksPeriod
-  }
+  // MARK: - Destination
   
   @Reducer
   public struct Destination {
     @CasePathable
     public enum State: Equatable {
-      case daysOfWeekGoalCreation(DaysOfWeekGoalCreationFeature.State)
-      case everyXDaysGoalCreation(EveryXDaysGoalCreationFeature.State)
-      case weeksPeriodGoalCreation(WeeksPeriodGoalCreationFeature.State)
-      
-      public enum Alert: Equatable {
-        case goalSelection
-      }
-      case alert(Alert)
+      case goalCreation(GoalCreationFeature.State)
     }
     
     @CasePathable
     public enum Action: Equatable {
-      case daysOfWeekGoalCreation(DaysOfWeekGoalCreationFeature.Action)
-      case everyXDaysGoalCreation(EveryXDaysGoalCreationFeature.Action)
-      case weeksPeriodGoalCreation(WeeksPeriodGoalCreationFeature.Action)
+      case goalCreation(GoalCreationFeature.Action)
     }
     
     let dependencies: Dependencies
@@ -94,18 +80,14 @@ public struct ActivityCreationFeature {
     }
     
     public var body: some Reducer<State, Action> {
-      Scope(state: \.daysOfWeekGoalCreation, action: \.daysOfWeekGoalCreation) {
-        DaysOfWeekGoalCreationFeature(dependencies: dependencies)
-      }
-      Scope(state: \.everyXDaysGoalCreation, action: \.everyXDaysGoalCreation) {
-        EveryXDaysGoalCreationFeature(dependencies: dependencies)
-      }
-      Scope(state: \.weeksPeriodGoalCreation, action: \.weeksPeriodGoalCreation) {
-        WeeksPeriodGoalCreationFeature(dependencies: dependencies)
+      Scope(state: \.goalCreation, action: \.goalCreation) {
+        GoalCreationFeature(dependencies: dependencies)
       }
     }
   }
 
+  // MARK: - Action
+  
   public enum Action: TCAFeatureAction, Equatable {
     public enum ViewAction: Equatable {
       case cancelButtonTapped
@@ -114,12 +96,6 @@ public struct ActivityCreationFeature {
       case sessionUnitChanged(SessionUnitType)
       case customUnitNameChanged(String)
       case editGoalButtonTapped
-      case didSelectAlertAction
-
-      public enum Alert: Equatable {
-        case goalSelection(GoalSelectionAction)
-      }
-      case alert(Alert)
     }
 
     public enum InternalAction: Equatable {
@@ -137,6 +113,8 @@ public struct ActivityCreationFeature {
     case destination(PresentationAction<Destination.Action>)
   }
 
+  // MARK: - Body
+  
   public var body: some Reducer<State, Action> {
     Reduce { state, action in
       core(into: &state, action: action)
@@ -146,6 +124,8 @@ public struct ActivityCreationFeature {
     }
   }
 
+  // MARK: - Core
+  
   private func core(into state: inout State, action: Action) -> Effect<Action> {
     switch action {
     case let .view(action):
@@ -157,72 +137,58 @@ public struct ActivityCreationFeature {
     case .delegate:
       return .none
       
-    case let .destination(.presented(destinationAction)):
-      switch destinationAction {
-      case let .daysOfWeekGoalCreation(.delegate(delegateAction)):
-        switch delegateAction {
-        case .dismissed:
-          state.destination = nil
-          return .none
-        case let .goalCreated(weeksInterval, targets):
-          // Store pending goal
-          state.pendingGoal = .daysOfWeek(
-            weeksInterval: weeksInterval,
-            sundayGoal: targets[.sunday],
-            mondayGoal: targets[.monday],
-            tuesdayGoal: targets[.tuesday],
-            wednesdayGoal: targets[.wednesday],
-            thursdayGoal: targets[.thursday],
-            fridayGoal: targets[.friday],
-            saturdayGoal: targets[.saturday]
-          )
-          
-          // Create description
-          let targetCount = targets.compactMap { $0 }.count
-          state.goalDescription = GoalDescriptions.daysOfWeekSummaryDescription(
-            targetCount: targetCount,
-            weeksInterval: weeksInterval
-          )
-          state.destination = nil
-          return .none
-        }
-
-      case let .everyXDaysGoalCreation(.delegate(delegateAction)):
-        switch delegateAction {
-        case .dismissed:
-          state.destination = nil
-          return .none
-        case let .goalCreated(daysInterval, target):
-          // Store pending goal
+    case let .destination(.presented(.goalCreation(.delegate(delegateAction)))):
+      switch delegateAction {
+      case .dismissed:
+        state.destination = nil
+        return .none
+        
+      case let .goalCreated(goalRequest):
+        switch goalRequest {
+        case let .everyXDays(daysInterval, target):
           state.pendingGoal = .everyXDays(daysInterval: daysInterval, target: target)
-          
-          // Create description
           state.goalDescription = GoalDescriptions.everyXDaysDescription(
             daysInterval: daysInterval,
             goalValue: target.goalValue,
             successCriteria: target.goalSuccessCriteria
           )
-          state.destination = nil
-          return .none
-        }
-      case let .weeksPeriodGoalCreation(.delegate(delegateAction)):
-        switch delegateAction {
-        case .dismissed:
-          state.destination = nil
-          return .none
-        case let .goalCreated(targetRequest):
-          // Store pending goal
-          state.pendingGoal = .weeksPeriod(target: targetRequest)
           
-          // Create description
-          state.goalDescription = GoalDescriptions.weeksPeriodDescription(
-            goalValue: targetRequest.goalValue,
-            successCriteria: targetRequest.goalSuccessCriteria
+        case let .daysOfWeek(weeksInterval, sundayGoal, mondayGoal, tuesdayGoal, wednesdayGoal, thursdayGoal, fridayGoal, saturdayGoal):
+          state.pendingGoal = .daysOfWeek(
+            weeksInterval: weeksInterval,
+            sundayGoal: sundayGoal,
+            mondayGoal: mondayGoal,
+            tuesdayGoal: tuesdayGoal,
+            wednesdayGoal: wednesdayGoal,
+            thursdayGoal: thursdayGoal,
+            fridayGoal: fridayGoal,
+            saturdayGoal: saturdayGoal
           )
-          state.destination = nil
-          return .none
+          
+          let targets: [DayOfWeek: DatabaseClient.CreateActivityGoalTarget.Request?] = [
+            .sunday: sundayGoal,
+            .monday: mondayGoal,
+            .tuesday: tuesdayGoal,
+            .wednesday: wednesdayGoal,
+            .thursday: thursdayGoal,
+            .friday: fridayGoal,
+            .saturday: saturdayGoal
+          ]
+          let targetCount = targets.compactMap { $0.value }.count
+          state.goalDescription = GoalDescriptions.daysOfWeekSummaryDescription(
+            targetCount: targetCount,
+            weeksInterval: weeksInterval
+          )
+          
+        case let .weeksPeriod(target):
+          state.pendingGoal = .weeksPeriod(target: target)
+          state.goalDescription = GoalDescriptions.weeksPeriodDescription(
+            goalValue: target.goalValue,
+            successCriteria: target.goalSuccessCriteria
+          )
         }
-      default:
+        
+        state.destination = nil
         return .none
       }
       
@@ -231,6 +197,8 @@ public struct ActivityCreationFeature {
     }
   }
 
+  // MARK: - Core View
+  
   private func coreView(into state: inout State, action: Action.ViewAction) -> Effect<Action> {
     switch action {
     case .cancelButtonTapped:
@@ -347,39 +315,23 @@ public struct ActivityCreationFeature {
       return .none
 
     case .editGoalButtonTapped:
-      state.destination = .alert(.goalSelection)
-      return .none
-
-    case .didSelectAlertAction:
-      state.destination = nil
-      return .none
-
-    case let .alert(action):
-      switch action {
-      case let .goalSelection(goalAction):
-        let sessionUnit: ActivityModel.SessionUnit
-        switch state.selectedSessionUnit {
-        case .integer:
-          sessionUnit = .integer(state.customUnitName.isEmpty ? "sessions" : state.customUnitName)
-        case .floating:
-          sessionUnit = .floating(state.customUnitName.isEmpty ? "units" : state.customUnitName)
-        case .time:
-          sessionUnit = .seconds
-        }
-
-        switch goalAction {
-        case .daysOfWeek:
-          state.destination = .daysOfWeekGoalCreation(DaysOfWeekGoalCreationFeature.State(sessionUnit: sessionUnit))
-        case .everyXDays:
-          state.destination = .everyXDaysGoalCreation(EveryXDaysGoalCreationFeature.State(sessionUnit: sessionUnit))
-        case .weeksPeriod:
-          state.destination = .weeksPeriodGoalCreation(WeeksPeriodGoalCreationFeature.State(sessionUnit: sessionUnit))
-        }
-        return .none
+      let sessionUnit: ActivityModel.SessionUnit
+      switch state.selectedSessionUnit {
+      case .integer:
+        sessionUnit = .integer(state.customUnitName.isEmpty ? "sessions" : state.customUnitName)
+      case .floating:
+        sessionUnit = .floating(state.customUnitName.isEmpty ? "units" : state.customUnitName)
+      case .time:
+        sessionUnit = .seconds
       }
+      
+      state.destination = .goalCreation(GoalCreationFeature.State(sessionUnit: sessionUnit))
+      return .none
     }
   }
 
+  // MARK: - Core Internal
+  
   private func coreInternal(into state: inout State, action: Action.InternalAction) -> Effect<Action> {
     switch action {
     case .createActivityWithGoalResponse(.success):

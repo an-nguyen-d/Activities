@@ -92,6 +92,9 @@ enum PackageTarget: String, CaseIterable {
   case WeeksPeriodGoalCreationFeature
   case WeeksPeriodGoalCreationFeatureiOS
   
+  case GoalCreationFeature
+  case GoalCreationFeatureiOS
+  
   case CreateSessionFeature
   case CreateSessionFeatureiOS
 
@@ -210,9 +213,7 @@ enum PackageTarget: String, CaseIterable {
         dependencies: createTargetDependencies(
           .SharedModels,
           .DatabaseClient,
-          .DaysOfWeekGoalCreationFeature,
-          .EveryXDaysGoalCreationFeature,
-          .WeeksPeriodGoalCreationFeature
+          .GoalCreationFeature
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -224,12 +225,7 @@ enum PackageTarget: String, CaseIterable {
         dependencies: createTargetDependencies(
           .ActivityCreationFeature,
           .DatabaseClient,
-          .DaysOfWeekGoalCreationFeature,
-          .DaysOfWeekGoalCreationFeatureiOS,
-          .EveryXDaysGoalCreationFeature,
-          .EveryXDaysGoalCreationFeatureiOS,
-          .WeeksPeriodGoalCreationFeature,
-          .WeeksPeriodGoalCreationFeatureiOS
+          .GoalCreationFeatureiOS
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -302,6 +298,34 @@ enum PackageTarget: String, CaseIterable {
           .WeeksPeriodGoalCreationFeature,
           .SharedUI,
           .Shared
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .GoalCreationFeature:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .DatabaseClient,
+          .SharedModels,
+          .DaysOfWeekGoalCreationFeature,
+          .EveryXDaysGoalCreationFeature,
+          .WeeksPeriodGoalCreationFeature
+        ) + [
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+        ]
+      )
+      
+    case .GoalCreationFeatureiOS:
+      return createPackageTarget(
+        dependencies: createTargetDependencies(
+          .GoalCreationFeature,
+          .SharedUI,
+          .DaysOfWeekGoalCreationFeatureiOS,
+          .EveryXDaysGoalCreationFeatureiOS,
+          .WeeksPeriodGoalCreationFeatureiOS
         ) + [
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency,
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
@@ -385,9 +409,11 @@ enum PackageTarget: String, CaseIterable {
       return createPackageTarget(
         dependencies: createTargetDependencies(
           .DatabaseClient,
-          .SharedModels
+          .SharedModels,
+          .GoalCreationFeature
         ) + [
-          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency
+          PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
+          PackageDependency.ElixirShared.Product.ElixirShared.targetDependency
         ]
       )
 
@@ -396,7 +422,8 @@ enum PackageTarget: String, CaseIterable {
         dependencies: createTargetDependencies(
           .ActivityGoalsTabFeature,
           .SharedModels,
-          .SharedUI
+          .SharedUI,
+          .GoalCreationFeatureiOS
         ) + [
           PackageDependency.ComposableArchitecture.Product.composableArchitecture.targetDependency,
           PackageDependency.ElixirShared.Product.ElixirShared.targetDependency

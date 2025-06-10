@@ -3,12 +3,7 @@ import Combine
 import ComposableArchitecture
 import ElixirShared
 import ACT_ActivityCreationFeature
-import ACT_DaysOfWeekGoalCreationFeature
-import ACT_DaysOfWeekGoalCreationFeatureiOS
-import ACT_EveryXDaysGoalCreationFeature
-import ACT_EveryXDaysGoalCreationFeatureiOS
-import ACT_WeeksPeriodGoalCreationFeature
-import ACT_WeeksPeriodGoalCreationFeatureiOS
+import ACT_GoalCreationFeatureiOS
 import ACT_SharedModels
 
 public final class ActivityCreationVC: BaseViewController {
@@ -167,54 +162,5 @@ public final class ActivityCreationVC: BaseViewController {
 
   private func bindRouting() {
     router.bindRouting()
-
-    observe { [weak self] in
-      guard let self else { return }
-
-      /// A bit hacky but when working with UIAlert, we need to observe it specficially
-      switch viewStore.state.destination {
-      case let .alert(alertState):
-        switch alertState {
-        case .goalSelection:
-          router.routeToAlert(
-            from: self,
-            title: "Select Goal Type",
-            message: "Choose how you'd like to track this activity",
-            preferredStyle: .actionSheet,
-            addCancel: true,
-            actions: [
-              .init(
-                title: "Days of Week",
-                action: { [weak self] action in
-                  self?.viewStore.send(.alert(.goalSelection(.daysOfWeek)))
-                },
-                style: .default
-              ),
-              .init(
-                title: "Every X Days",
-                action: { [weak self] action in
-                  self?.viewStore.send(.alert(.goalSelection(.everyXDays)))
-                },
-                style: .default
-              ),
-              .init(
-                title: "Weeks Period",
-                action: { [weak self] action in
-                  self?.viewStore.send(.alert(.goalSelection(.weeksPeriod)))
-                },
-                style: .default
-              )
-            ],
-            textFields: [],
-            didSelectAction: { [weak self] in
-              self?.viewStore.send(.didSelectAlertAction)
-            }
-          )
-        }
-
-      default:
-        break
-      }
-    }
   }
 }

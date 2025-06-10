@@ -143,6 +143,138 @@ git push
 - **Database**: GRDB 7.5.0 for SQLite persistence
 - **Dependencies**: TCA 1.20.2, swift-tagged, ElixirShared (local package)
 
+## iOS View Controller Architecture Guidelines
+
+When creating new ViewControllers in the iOS feature targets, follow these critical patterns:
+
+### 1. Separate View Code
+- **View code belongs in a dedicated View class**, NOT in the ViewController
+- Create a separate `YourFeatureView` class that inherits from `BaseView` (from ElixirShared)
+- The ViewController should only have a `contentView` property of this type
+- Use `loadView()` to set `view = contentView`
+
+### 2. Use updateObject Pattern
+- Views should expose an `updateObject` method for configuration
+- Define a nested `Object` struct in the View with all configurable properties
+- The ViewController's `observeStore()` method creates this Object and calls `updateObject`
+- This keeps view configuration logic separate and testable
+
+### 3. Use BaseButton, Not UIButton
+- **ALWAYS use BaseButton** from SharedUI instead of UIButton
+- Configure buttons with `onTapHandler` closure in the VC's `bindView()` method
+- Do NOT use target/action pattern with `@objc` methods for BaseButton
+- Example:
+  ```swift
+  contentView.myButton.onTapHandler = { [weak self] in
+    self?.store.send(.view(.buttonTapped))
+  }
+  ```
+
+### 4. Standard ViewController Structure
+```swift
+public final class YourFeatureVC: BaseViewController {
+  // MARK: - Types
+  public typealias Module = YourFeature
+  private typealias View = YourFeatureView
+  public typealias Dependencies = Module.Dependencies
+  
+  // MARK: - Properties
+  private let contentView = View()
+  private let store: StoreOf<Module>
+  private var router: YourFeatureRouter!
+  
+  // MARK: - Init
+  public init(store: StoreOf<Module>, dependencies: Dependencies) {
+    self.store = store
+    super.init()
+    self.router = YourFeatureRouter(
+      viewController: self,
+      store: store,
+      dependencies: dependencies
+    )
+  }
+  
+  // MARK: - Lifecycle
+  public override func loadView() {
+    view = contentView
+  }
+  
+  public override func viewDidLoad() {
+    super.viewDidLoad()
+    observeStore()
+    bindView()
+  }
+  
+  // MARK: - Store Observation
+  private func observeStore() {
+    observe { [weak self] in
+      guard let self = self else { return }
+      let object = View.Object(/* configure from store state */)
+      contentView.updateObject(object)
+    }
+  }
+  
+  // MARK: - Bind View
+  private func bindView() {
+    // Set onTapHandler for BaseButtons here
+  }
+}
+```
+
+## iOS Routing Pattern
+
+When creating routers for iOS view controllers, always follow this pattern:
+
+```swift
+@MainActor
+final class SomeRouter {
+  
+  public typealias Module = SomeFeature
+  public typealias Dependencies = Module.Dependencies
+  
+  weak var viewController: UIViewController?
+  
+  @UIBindable
+  private var store: StoreOf<Module>
+  
+  private let dependencies: Dependencies
+  
+  init(
+    viewController: UIViewController,
+    store: StoreOf<Module>,
+    dependencies: Dependencies
+  ) {
+    self.viewController = viewController
+    self.store = store
+    self.dependencies = dependencies
+    bindRouting()
+  }
+  
+  private func bindRouting() {
+    viewController?.present(
+      item: $store.scope(
+        state: \.destination?.someDestination,
+        action: \.destination.someDestination
+      )
+    ) { [dependencies] store in
+      let viewController = SomeVC(
+        store: store,
+        dependencies: dependencies
+      )
+      // Configure presentation style if needed
+      return viewController
+    }
+  }
+}
+```
+
+Key points:
+- Always use `@MainActor` on the router class
+- Use `@UIBindable` for the store property
+- Use `viewController?.present(item:)` with `$store.scope()` binding
+- No manual observation or state checking needed
+- The `present(item:)` API handles presentation/dismissal automatically
+
 ## Known Database Design Issues
 
 ### ActivityGoalTargetRecord Foreign Key Direction (as of Jan 2025)

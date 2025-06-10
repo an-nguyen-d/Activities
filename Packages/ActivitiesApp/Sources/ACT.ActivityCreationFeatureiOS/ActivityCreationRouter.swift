@@ -2,12 +2,7 @@ import UIKit
 import ComposableArchitecture
 import ElixirShared
 import ACT_ActivityCreationFeature
-import ACT_DaysOfWeekGoalCreationFeature
-import ACT_DaysOfWeekGoalCreationFeatureiOS
-import ACT_EveryXDaysGoalCreationFeature
-import ACT_EveryXDaysGoalCreationFeatureiOS
-import ACT_WeeksPeriodGoalCreationFeature
-import ACT_WeeksPeriodGoalCreationFeatureiOS
+import ACT_GoalCreationFeatureiOS
 
 extension ActivityCreationVC {
 
@@ -36,46 +31,20 @@ extension ActivityCreationVC {
     }
 
     func bindRouting() {
-      // DaysOfWeek goal creation
+      // Goal creation
       viewController?.present(
         item: $store.scope(
-          state: \.destination?.daysOfWeekGoalCreation,
-          action: \.destination.daysOfWeekGoalCreation
+          state: \.destination?.goalCreation,
+          action: \.destination.goalCreation
         )
       ) { [dependencies] store in
-        let destinationVC = DaysOfWeekGoalCreationVC(
+        let destinationVC = GoalCreationVC(
           store: store,
           dependencies: dependencies
         )
-        return UINavigationController(rootViewController: destinationVC)
-      }
-      
-      // EveryXDays goal creation
-      viewController?.present(
-        item: $store.scope(
-          state: \.destination?.everyXDaysGoalCreation,
-          action: \.destination.everyXDaysGoalCreation
-        )
-      ) { [dependencies] store in
-        let destinationVC = EveryXDaysGoalCreationVC(
-          store: store,
-          dependencies: dependencies
-        )
-        return UINavigationController(rootViewController: destinationVC)
-      }
-      
-      // WeeksPeriod goal creation
-      viewController?.present(
-        item: $store.scope(
-          state: \.destination?.weeksPeriodGoalCreation,
-          action: \.destination.weeksPeriodGoalCreation
-        )
-      ) { [dependencies] store in
-        let destinationVC = WeeksPeriodGoalCreationVC(
-          store: store,
-          dependencies: dependencies
-        )
-        return UINavigationController(rootViewController: destinationVC)
+        destinationVC.modalPresentationStyle = .overFullScreen
+        destinationVC.modalTransitionStyle = .crossDissolve
+        return destinationVC
       }
     }
 

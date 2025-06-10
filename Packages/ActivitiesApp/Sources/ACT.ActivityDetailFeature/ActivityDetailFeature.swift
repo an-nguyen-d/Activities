@@ -43,6 +43,7 @@ public struct ActivityDetailFeature {
   
   public typealias Dependencies =
   ActivityGeneralTabFeature.Dependencies &
+  ActivityGoalsTabFeature.Dependencies &
   HasDatabaseClient
 
   // Ensure Dependencies conforms to ActivityGeneralTabFeature.Dependencies
