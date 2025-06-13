@@ -212,10 +212,50 @@ public struct ActivitiesListFeature {
         return .none
       }
       
+      // Calculate common values from recent sessions and goal
+      var commonValuesSet: [Float] = []
+      
+      // First, add the goal target value if available
+      let goalTarget = activityItem.effectiveGoal.getGoalTarget(for: state.currentCalendarDate)
+      if let targetValue = goalTarget?.goalValue, targetValue > 0 {
+        commonValuesSet.append(Float(targetValue))
+      }
+      
+      // Get up to 5 most recent sessions (sessions array is already sorted with most recent first)
+      let recentSessions = activityItem.sessions.prefix(5)
+      
+      // Collect unique values from recent sessions
+      var sessionValues: [Float] = []
+      for session in recentSessions {
+        let value = Float(session.value)
+        if value > 0 && !commonValuesSet.contains(value) && !sessionValues.contains(value) {
+          sessionValues.append(value)
+        }
+      }
+      
+      // Sort session values from smallest to greatest
+      sessionValues.sort()
+      
+      // Combine: goal value first, then sorted session values
+      commonValuesSet.append(contentsOf: sessionValues)
+      
+      // If we have no common values, provide some defaults based on unit type
+      if commonValuesSet.isEmpty {
+        switch activityItem.activity.sessionUnit {
+        case .integer:
+          commonValuesSet = [1, 2, 3, 5, 10]
+        case .floating:
+          commonValuesSet = [0.5, 1, 1.5, 2, 3]
+        case .seconds:
+          commonValuesSet = [60, 300, 600, 900, 1800] // 1m, 5m, 10m, 15m, 30m
+        }
+      }
+      
       state.destination = .createSession(
         CreateSessionFeature.State(
           activityID: activityId,
-          sessionUnit: activityItem.activity.sessionUnit
+          sessionUnit: activityItem.activity.sessionUnit,
+          commonValues: commonValuesSet
         )
       )
       return .none

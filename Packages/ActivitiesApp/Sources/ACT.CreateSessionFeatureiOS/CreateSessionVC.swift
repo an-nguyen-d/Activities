@@ -48,10 +48,13 @@ public final class CreateSessionVC: BaseViewController {
   public override func viewDidLoad() {
     super.viewDidLoad()
     
-    setupInitialState()
     setupPickerDelegates()
+    setupInitialState() // This creates the buttons
+    bindView() // This sets up button tap handlers
     observeStore()
-    bindView()
+    
+    // Set scrollview delegate for keyboard dismissal
+    contentView.scrollView.delegate = self
   }
   
   public override func viewDidAppear(_ animated: Bool) {
@@ -66,8 +69,8 @@ public final class CreateSessionVC: BaseViewController {
   }
   
   private func setupInitialState() {
-    // Configure view based on unit type
-    contentView.configureForUnit(viewStore.sessionUnit)
+    // Configure view based on unit type and pass common values from state
+    contentView.configureForUnit(viewStore.sessionUnit, commonValues: viewStore.commonValues)
     
     // Set initial picker selections for time
     if case .seconds = viewStore.sessionUnit {
@@ -136,6 +139,42 @@ public final class CreateSessionVC: BaseViewController {
       self?.viewStore.send(.cancelButtonTapped)
     }
     
+    // Common value buttons
+    for button in contentView.commonValueButtons {
+      button.onTapHandler = { [weak self] in
+        guard let self = self else { return }
+        // Extract value from tag (divided by 100 since we multiplied by 100 when storing)
+        let value = Float(button.tag) / 100.0
+        
+        // Dismiss keyboard
+        self.view.endEditing(true)
+        
+        // Update value based on unit type
+        switch self.viewStore.sessionUnit {
+        case .integer:
+          self.viewStore.send(.integerValueChanged(Int(value)))
+        case .floating:
+          self.viewStore.send(.floatingValueChanged(Double(value)))
+        case .seconds:
+          // Convert seconds to hours, minutes, seconds
+          let totalSeconds = Int(value)
+          let hours = totalSeconds / 3600
+          let minutes = (totalSeconds % 3600) / 60
+          let seconds = totalSeconds % 60
+          
+          // Update all three pickers
+          self.contentView.hoursPicker.selectRow(hours, inComponent: 0, animated: true)
+          self.contentView.minutesPicker.selectRow(minutes, inComponent: 0, animated: true)
+          self.contentView.secondsPicker.selectRow(seconds, inComponent: 0, animated: true)
+          
+          // Send actions to update the state
+          self.viewStore.send(.timeHoursChanged(hours))
+          self.viewStore.send(.timeMinutesChanged(minutes))
+          self.viewStore.send(.timeSecondsChanged(seconds))
+        }
+      }
+    }
+    
     // Dismiss keyboard on tap
     let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
     tapGesture.cancelsTouchesInView = false
@@ -201,6 +240,17 @@ extension CreateSessionVC: UITextFieldDelegate {
     case .seconds:
       return false
     }
+  }
+}
+
+// MARK: - UIPickerViewDataSource & Delegate
+
+// MARK: - UIScrollViewDelegate
+
+extension CreateSessionVC: UIScrollViewDelegate {
+  public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    // Dismiss keyboard when scrolling begins
+    view.endEditing(true)
   }
 }
 

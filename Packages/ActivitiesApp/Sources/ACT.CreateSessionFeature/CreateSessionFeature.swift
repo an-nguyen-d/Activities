@@ -11,6 +11,7 @@ public struct CreateSessionFeature {
   public struct State: Equatable, Sendable {
     public let activityID: ActivityModel.ID
     public let sessionUnit: ActivityModel.SessionUnit
+    public let commonValues: [Float]
     
     // Value tracking based on unit type
     public var integerValue: Int = 1
@@ -51,10 +52,12 @@ public struct CreateSessionFeature {
     
     public init(
       activityID: ActivityModel.ID,
-      sessionUnit: ActivityModel.SessionUnit
+      sessionUnit: ActivityModel.SessionUnit,
+      commonValues: [Float]
     ) {
       self.activityID = activityID
       self.sessionUnit = sessionUnit
+      self.commonValues = commonValues
     }
   }
   

@@ -65,6 +65,36 @@ public final class CreateSessionView: BaseView {
     $0.stepValue = 1
   }
   
+  // Common values quick selection for number input
+  let numberCommonValuesScrollView = updateObject(UIScrollView()) {
+    $0.showsHorizontalScrollIndicator = false
+    $0.showsVerticalScrollIndicator = false
+  }
+  
+  let numberCommonValuesStackView = updateObject(UIStackView()) {
+    $0.axis = .horizontal
+    $0.spacing = 8
+    $0.alignment = .center
+    $0.distribution = .fill // Changed to fill for proper button sizing
+  }
+  
+  // Common values quick selection for time input
+  let timeCommonValuesScrollView = updateObject(UIScrollView()) {
+    $0.showsHorizontalScrollIndicator = false
+    $0.showsVerticalScrollIndicator = false
+  }
+  
+  let timeCommonValuesStackView = updateObject(UIStackView()) {
+    $0.axis = .horizontal
+    $0.spacing = 8
+    $0.alignment = .center
+    $0.distribution = .fill // Changed to fill for consistency
+  }
+  
+  // Common values passed from state
+  private var commonValues: [Float] = []
+  var commonValueButtons: [BaseButton] = []
+  
   // MARK: - Time Input
   
   let timeInputContainer = UIView()
@@ -152,17 +182,19 @@ public final class CreateSessionView: BaseView {
     // Number input setup
     numberInputContainer.addSubviews(
       numberTextField,
-      numberStepper
+      numberStepper,
+      numberCommonValuesScrollView
     )
     
     numberInputContainer.fillHorizontally(contentView, padding: 20)
     numberInputContainer.anchor(
       .top(titleLabel.bottomAnchor, constant: 40),
-      .height(120)
+      .height(180) // Increased height to accommodate common values
     )
     
-    numberTextField.centerIn(numberInputContainer)
+    numberTextField.centerXTo(numberInputContainer.centerXAnchor)
     numberTextField.anchor(
+      .top(numberInputContainer.topAnchor),
       .width(200),
       .height(80)
     )
@@ -172,26 +204,68 @@ public final class CreateSessionView: BaseView {
     )
     numberStepper.centerXTo(numberTextField.centerXAnchor)
     
+    // Number common values scrollview setup
+    numberCommonValuesScrollView.anchor(
+      .leading(numberInputContainer.leadingAnchor),
+      .trailing(numberInputContainer.trailingAnchor),
+      .top(numberStepper.bottomAnchor, constant: 16),
+      .height(40)
+    )
+    
+    numberCommonValuesScrollView.addSubviews(numberCommonValuesStackView)
+    // Use content layout guide for horizontal scrolling
+    numberCommonValuesStackView.translatesAutoresizingMaskIntoConstraints = false
+    NSLayoutConstraint.activate([
+      numberCommonValuesStackView.leadingAnchor.constraint(equalTo: numberCommonValuesScrollView.contentLayoutGuide.leadingAnchor),
+      numberCommonValuesStackView.trailingAnchor.constraint(equalTo: numberCommonValuesScrollView.contentLayoutGuide.trailingAnchor),
+      numberCommonValuesStackView.topAnchor.constraint(equalTo: numberCommonValuesScrollView.contentLayoutGuide.topAnchor),
+      numberCommonValuesStackView.bottomAnchor.constraint(equalTo: numberCommonValuesScrollView.contentLayoutGuide.bottomAnchor),
+      numberCommonValuesStackView.heightAnchor.constraint(equalTo: numberCommonValuesScrollView.frameLayoutGuide.heightAnchor)
+    ])
+    
     // Time input setup
-    timeInputContainer.addSubviews(timeStackView)
+    timeInputContainer.addSubviews(timeStackView, timeCommonValuesScrollView)
     
     timeInputContainer.fillHorizontally(contentView, padding: 20)
     timeInputContainer.anchor(
       .top(titleLabel.bottomAnchor, constant: 40),
-      .height(260)
+      .height(320) // 260 for pickers + 16 spacing + 40 for common values + 4 padding
     )
     
-    timeStackView.anchor(
-      .leading(timeInputContainer.leadingAnchor),
-      .trailing(timeInputContainer.trailingAnchor),
-      .top(timeInputContainer.topAnchor),
-      .bottom(timeInputContainer.bottomAnchor)
-    )
+    // timeStackView is already positioned correctly, no need to re-anchor here
     
     // Setup picker containers
     [hoursPickerContainer, minutesPickerContainer, secondsPickerContainer].forEach {
       timeStackView.addArrangedSubview($0)
     }
+    
+    // Position time stack view first
+    timeStackView.anchor(
+      .leading(timeInputContainer.leadingAnchor),
+      .trailing(timeInputContainer.trailingAnchor),
+      .top(timeInputContainer.topAnchor),
+      .height(260) // Fixed height for pickers
+    )
+    
+    // Position common values below time pickers
+    timeCommonValuesScrollView.anchor(
+      .leading(timeInputContainer.leadingAnchor),
+      .trailing(timeInputContainer.trailingAnchor),
+      .top(timeStackView.bottomAnchor, constant: 16),
+      .height(40)
+    )
+    
+    // Setup time common values stack view
+    timeCommonValuesScrollView.addSubviews(timeCommonValuesStackView)
+    // Use content layout guide for horizontal scrolling
+    timeCommonValuesStackView.translatesAutoresizingMaskIntoConstraints = false
+    NSLayoutConstraint.activate([
+      timeCommonValuesStackView.leadingAnchor.constraint(equalTo: timeCommonValuesScrollView.contentLayoutGuide.leadingAnchor),
+      timeCommonValuesStackView.trailingAnchor.constraint(equalTo: timeCommonValuesScrollView.contentLayoutGuide.trailingAnchor),
+      timeCommonValuesStackView.topAnchor.constraint(equalTo: timeCommonValuesScrollView.contentLayoutGuide.topAnchor),
+      timeCommonValuesStackView.bottomAnchor.constraint(equalTo: timeCommonValuesScrollView.contentLayoutGuide.bottomAnchor),
+      timeCommonValuesStackView.heightAnchor.constraint(equalTo: timeCommonValuesScrollView.frameLayoutGuide.heightAnchor)
+    ])
     
     // Hours picker
     hoursPickerContainer.addSubviews(hoursLabel, hoursPicker)
@@ -261,7 +335,9 @@ public final class CreateSessionView: BaseView {
     cancelButton.centerXTo(contentView.centerXAnchor)
   }
   
-  func configureForUnit(_ unit: ActivityModel.SessionUnit) {
+  func configureForUnit(_ unit: ActivityModel.SessionUnit, commonValues: [Float]) {
+    self.commonValues = commonValues
+    
     switch unit {
     case .integer, .floating:
       numberInputContainer.isHidden = false
@@ -278,6 +354,58 @@ public final class CreateSessionView: BaseView {
     case .seconds:
       numberInputContainer.isHidden = true
       timeInputContainer.isHidden = false
+    }
+    
+    // Update common value buttons for the unit type
+    setupCommonValueButtons(for: unit)
+  }
+  
+  private func setupCommonValueButtons(for unit: ActivityModel.SessionUnit? = nil) {
+    // Clear existing buttons
+    commonValueButtons.forEach { $0.removeFromSuperview() }
+    commonValueButtons.removeAll()
+    
+    // Determine which stack view to use
+    let stackView: UIStackView
+    switch unit {
+    case .integer, .floating:
+      stackView = numberCommonValuesStackView
+    case .seconds:
+      stackView = timeCommonValuesStackView
+    case .none:
+      return // No unit specified, don't create buttons
+    }
+    
+    // Create buttons for each common value
+    for value in commonValues {
+      let button = updateObject(BaseButton()) {
+        // Format the title based on unit type
+        let title: String
+        switch unit {
+        case .integer:
+          title = String(Int(value))
+        case .floating:
+          title = ValueFormatting.formatValue(Double(value), for: unit!)
+        case .seconds:
+          title = TimeFormatting.formatTimeDescription(seconds: Double(value))
+        case .none:
+          title = "" // Won't reach here due to guard above
+        }
+        
+        $0.setTitle(title, for: .normal)
+        $0.titleLabel?.font = .systemFont(ofSize: 14, weight: .medium)
+        $0.setTitleColor(.white, for: .normal)
+        $0.backgroundColor = UIColor.white.withAlphaComponent(0.1)
+        $0.layer.cornerRadius = 16
+        $0.contentEdgeInsets = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
+        $0.tag = Int(value * 100) // Store value as tag (multiplied to preserve decimals)
+        // Ensure button has intrinsic content size
+        $0.setContentHuggingPriority(.required, for: .horizontal)
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+      }
+      
+      commonValueButtons.append(button)
+      stackView.addArrangedSubview(button)
     }
   }
 }
