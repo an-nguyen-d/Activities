@@ -4,6 +4,7 @@ import ACT_ActivitiesListFeature
 import ACT_GoalEvaluationClient
 import IdentifiedCollections
 import ElixirShared
+import ACT_Shared
 
 extension ActivitiesCollection {
 
@@ -375,13 +376,16 @@ private extension ActivitiesCollection.Manager {
       return "\(currentFormatted) / \(targetFormatted) (\(differenceSign)\(differenceFormatted))"
       
     case .integer(let unitName), .floating(let unitName):
-      // For non-time activities, use the unit name
-      let target = Int(targetValue)
-      let current = Int(completedValue)
-      let difference = target - current
-      let differenceText = difference > 0 ? "-\(difference)" : "+\(abs(difference))"
+      // For non-time activities, use proper formatting based on session unit
+      let targetFormatted = ValueFormatting.formatValue(targetValue, for: activity.sessionUnit)
+      let currentFormatted = ValueFormatting.formatValue(completedValue, for: activity.sessionUnit)
       
-      return "\(current) / \(target) \(unitName) (\(differenceText))"
+      // Calculate difference with proper precision
+      let difference = targetValue - completedValue
+      let differenceFormatted = ValueFormatting.formatValue(abs(difference), for: activity.sessionUnit)
+      let differenceSign = difference > 0 ? "-" : "+"
+      
+      return "\(currentFormatted) / \(targetFormatted) \(unitName) (\(differenceSign)\(differenceFormatted))"
     }
   }
   

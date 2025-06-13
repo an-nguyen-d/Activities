@@ -6,10 +6,18 @@ public enum GoalDescriptions {
   public static func everyXDaysDescription(
     daysInterval: Int,
     goalValue: Double,
-    successCriteria: GoalSuccessCriteria
+    successCriteria: GoalSuccessCriteria,
+    sessionUnit: ActivityModel.SessionUnit? = nil
   ) -> String {
     let intervalText = daysInterval == 1 ? "day" : "\(daysInterval) days"
-    return "\(successCriteria.rawValue) \(Int(goalValue)) every \(intervalText)"
+    let formattedValue: String
+    if let sessionUnit = sessionUnit {
+      formattedValue = ValueFormatting.formatValue(goalValue, for: sessionUnit)
+    } else {
+      // Fallback: show decimals only if needed
+      formattedValue = goalValue.truncatingRemainder(dividingBy: 1) == 0 ? String(Int(goalValue)) : String(goalValue)
+    }
+    return "\(successCriteria.rawValue) \(formattedValue) every \(intervalText)"
   }
   
   /// Creates a human-readable description for a DaysOfWeek goal (summary version)
@@ -24,19 +32,28 @@ public enum GoalDescriptions {
   /// Creates a human-readable description for a WeeksPeriod goal
   public static func weeksPeriodDescription(
     goalValue: Double,
-    successCriteria: GoalSuccessCriteria
+    successCriteria: GoalSuccessCriteria,
+    sessionUnit: ActivityModel.SessionUnit? = nil
   ) -> String {
-    return "Weekly goal: \(successCriteria.rawValue) \(Int(goalValue)) per week"
+    let formattedValue: String
+    if let sessionUnit = sessionUnit {
+      formattedValue = ValueFormatting.formatValue(goalValue, for: sessionUnit)
+    } else {
+      // Fallback: show decimals only if needed
+      formattedValue = goalValue.truncatingRemainder(dividingBy: 1) == 0 ? String(Int(goalValue)) : String(goalValue)
+    }
+    return "Weekly goal: \(successCriteria.rawValue) \(formattedValue) per week"
   }
   
   /// Creates a description from any ActivityGoal model
-  public static func description(for goal: ActivityGoalType) -> String {
+  public static func description(for goal: ActivityGoalType, sessionUnit: ActivityModel.SessionUnit? = nil) -> String {
     switch goal {
     case .everyXDays(let everyXDays):
       return everyXDaysDescription(
         daysInterval: everyXDays.daysInterval,
         goalValue: everyXDays.target.goalValue,
-        successCriteria: everyXDays.target.goalSuccessCriteria
+        successCriteria: everyXDays.target.goalSuccessCriteria,
+        sessionUnit: sessionUnit
       )
       
     case .daysOfWeek(let daysOfWeek):
@@ -58,7 +75,8 @@ public enum GoalDescriptions {
     case .weeksPeriod(let weeksPeriod):
       return weeksPeriodDescription(
         goalValue: weeksPeriod.target.goalValue,
-        successCriteria: weeksPeriod.target.goalSuccessCriteria
+        successCriteria: weeksPeriod.target.goalSuccessCriteria,
+        sessionUnit: sessionUnit
       )
     }
   }

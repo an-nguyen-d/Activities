@@ -262,12 +262,15 @@ public final class DaysOfWeekGoalCreationVC: UIViewController {
         
         let targetText: String
         switch viewStore.sessionUnit {
-        case .integer:
-          let unitName = getUnitName(for: viewStore.sessionUnit, value: Int(targetValue))
-          targetText = "\(Int(targetValue)) \(unitName)"
-        case .floating:
-          let unitName = getUnitName(for: viewStore.sessionUnit, value: Int(targetValue))
-          targetText = String(format: "%.1f %@", targetValue, unitName)
+        case .integer(let unitName):
+          let formattedValue = ValueFormatting.formatValue(targetValue, for: viewStore.sessionUnit)
+          let finalUnitName = targetValue == 1 ? unitName.singularized() : unitName
+          targetText = "\(formattedValue) \(finalUnitName)"
+        case .floating(let unitName):
+          let formattedValue = ValueFormatting.formatValue(targetValue, for: viewStore.sessionUnit)
+          // For floating, check if the value is approximately 1 for singularization
+          let finalUnitName = abs(targetValue - 1.0) < 0.01 ? unitName.singularized() : unitName
+          targetText = "\(formattedValue) \(finalUnitName)"
         case .seconds:
           targetText = TimeFormatting.formatTimeDescription(seconds: targetValue)
         }
@@ -305,12 +308,12 @@ public final class DaysOfWeekGoalCreationVC: UIViewController {
   
   // MARK: - Helpers
   
-  private func getUnitName(for sessionUnit: ActivityModel.SessionUnit, value: Int) -> String {
+  private func getUnitName(for sessionUnit: ActivityModel.SessionUnit, value: Double) -> String {
     switch sessionUnit {
     case .integer(let unit):
-      return value == 1 ? unit.singularized() : unit
+      return Int(value) == 1 ? unit.singularized() : unit
     case .floating(let unit):
-      return value == 1 ? unit.singularized() : unit
+      return abs(value - 1.0) < 0.01 ? unit.singularized() : unit
     case .seconds:
       return ""
     }

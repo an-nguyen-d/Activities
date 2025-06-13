@@ -85,11 +85,13 @@ public class ActivityGoalsTabVC: UIViewController {
       guard let self = self else { return }
       
       let goals = self.store.withState(\.goals)
+      let sessionUnit = self.store.withState(\.activitySessionUnit)
+      
       let cellModels = goals.map { goal in
         GoalsCollection.Cell.Goal.Model(
           id: goal.id.rawValue.description,
           effectiveDate: "Effective CalendarDate: \(goal.effectiveCalendarDate.value)",
-          description: GoalDescriptions.description(for: goal),
+          description: GoalDescriptions.description(for: goal, sessionUnit: sessionUnit),
           goalType: GoalDescriptions.goalTypeName(for: goal)
         )
       }
